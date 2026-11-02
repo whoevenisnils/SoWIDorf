@@ -519,7 +519,7 @@
             </div>
         </div>
 
-        <!-- SEITE 3: INFOS & REGELN (NEU) -->
+        <!-- SEITE 3: INFOS & REGELN -->
         <div id="infoPage" class="page">
             <section class="card">
                 <h2>📜 Dorf-Regeln (Editierbar)</h2>
@@ -622,6 +622,33 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // Dein integrierter Discord Webhook
+        const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1566901868188139532/-hpv9GiYi1kW7pYDk7L_zO02ppdPXNAau0cqDj02DD1W3LiFaaKfmVtRhBf-3L0V0Mpc";
+
+        async function sendDiscordWebhook(title, description, color = 5814783) {
+            if (!DISCORD_WEBHOOK_URL) return;
+            
+            const payload = {
+                embeds: [{
+                    title: "🌾 Dorf-Log: " + title,
+                    description: description,
+                    color: color,
+                    timestamp: new Date().toISOString(),
+                    footer: { text: "Ausgeführt von: " + (currentUser || "Unbekannt") }
+                }]
+            };
+
+            try {
+                await fetch(DISCORD_WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.error("Fehler beim Senden des Webhooks:", err);
+            }
+        }
 
         let currentUser = sessionStorage.getItem('dorf_current_user') || null;
         let isUserAdmin = false;
@@ -743,6 +770,8 @@
                     isAdmin: false
                 });
 
+                await sendDiscordWebhook("Neuer Bürger registriert", `**Name:** ${u}\n**Beruf:** ${j}\n**Schicht:** ${s}`, 3066993);
+
                 document.getElementById('regSuccess').classList.remove('hidden');
                 document.getElementById('regUser').value = '';
                 document.getElementById('regPass').value = '';
@@ -852,14 +881,12 @@
 
         async function loadInfoData() {
             try {
-                // Regeln laden
                 const rulesRef = db.collection("economy").doc("rules");
                 const rulesSnap = await rulesRef.get();
                 if (rulesSnap.exists) {
                     document.getElementById('rulesTextarea').value = rulesSnap.data().content || '';
                 }
 
-                // Bürger- & Berufsliste laden
                 const usersSnap = await db.collection("users").get();
                 const tbody = document.getElementById('infoCitizensTableBody');
                 tbody.innerHTML = '';
@@ -887,6 +914,8 @@
             const content = document.getElementById('rulesTextarea').value;
             try {
                 await db.collection("economy").doc("rules").set({ content: content });
+                await sendDiscordWebhook("Dorf-Regeln aktualisiert", `Die Regeln wurden von **${currentUser}** bearbeitet.`);
+                
                 const status = document.getElementById('rulesSavedStatus');
                 status.classList.remove('hidden');
                 setTimeout(() => status.classList.add('hidden'), 2000);
@@ -939,12 +968,12 @@
                     row.innerHTML = `
                         <td><strong>${data.username}</strong> ${isNils ? '(Haupt-Admin)' : ''}</td>
                         <td>
-                            <select id="job_${docId}" onchange="updateUserJob('${docId}')" style="padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                            <select id="job_${docId}" onchange="updateUserJob('${docId}', '${data.username}')" style="padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                                 ${jobOptionsHtml}
                             </select>
                         </td>
                         <td>
-                            <select id="class_${docId}" onchange="updateUserClass('${docId}')" style="padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                            <select id="class_${docId}" onchange="updateUserClass('${docId}', '${data.username}')" style="padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                                 <option value="untere" ${data.socialClass === 'untere' ? 'selected' : ''}>Untere Schicht</option>
                                 <option value="mittlere" ${data.socialClass === 'mittlere' ? 'selected' : ''}>Mittlere Schicht</option>
                                 <option value="obere" ${data.socialClass === 'obere' ? 'selected' : ''}>Obere Schicht</option>
@@ -953,12 +982,12 @@
                         <td>
                             <div style="display: flex; gap: 0.5rem; align-items: center;">
                                 <input type="number" id="bal_${docId}" value="${balance}" style="width: 100px; padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
-                                <button class="btn btn-sm" onclick="updateUserBalance('${docId}')">Ändern</button>
+                                <button class="btn btn-sm" onclick="updateUserBalance('${docId}', '${data.username}')">Ändern</button>
                             </div>
                         </td>
                         <td>
                             ${isNils ? '<span style="color: var(--dc-gold); font-weight: bold;">Immer Admin</span>' : `
-                                <button class="btn btn-sm ${userIsAdmin ? 'btn-danger' : 'btn-success'}" onclick="toggleAdmin('${docId}', ${!userIsAdmin})">
+                                <button class="btn btn-sm ${userIsAdmin ? 'btn-danger' : 'btn-success'}" onclick="toggleAdmin('${docId}', '${data.username}', ${!userIsAdmin})">
                                     ${userIsAdmin ? 'Admin entziehen' : 'Admin geben'}
                                 </button>
                             `}
@@ -997,6 +1026,8 @@
                     await db.collection("inventory").doc(itemId).update({ imageUrl: base64Image });
                     await db.collection("item_icons").doc(itemId).set({ imageUrl: base64Image });
 
+                    await sendDiscordWebhook("Item-Icon aktualisiert", `Neues Bild für Item **${itemId}** hochgeladen.`);
+
                     alert("Das Icon wurde erfolgreich hochgeladen und gespeichert!");
                     fileInput.value = '';
                     loadInventory();
@@ -1014,6 +1045,7 @@
 
             try {
                 await db.collection("users").doc(docId).delete();
+                await sendDiscordWebhook("Account gelöscht", `Der Account von **${username}** wurde gelöscht.`, 15158332);
                 alert(`Der Account von ${username} wurde gelöscht.`);
                 loadAdminData();
             } catch (err) {
@@ -1033,6 +1065,7 @@
 
             try {
                 await db.collection("economy").doc("treasury").set({ totalAmount: newAmount });
+                await sendDiscordWebhook("Dorfkasse angepasst", `Neuer Kontostand der Dorfkasse: **${newAmount.toLocaleString('de-DE')} €**`, 16776960);
                 alert("Vermögen der Dorfkasse erfolgreich aktualisiert!");
             } catch (err) {
                 console.error("Fehler beim Ändern der Dorfkasse:", err);
@@ -1040,7 +1073,7 @@
             }
         };
 
-        window.updateUserBalance = async function(docId) {
+        window.updateUserBalance = async function(docId, username) {
             const inputVal = document.getElementById(`bal_${docId}`).value;
             const newBalance = Number(inputVal);
 
@@ -1051,6 +1084,7 @@
 
             try {
                 await db.collection("users").doc(docId).update({ balance: newBalance });
+                await sendDiscordWebhook("Kontostand geändert", `Bürger **${username}** hat neuen Kontostand: **${newBalance.toLocaleString('de-DE')} €**`, 16776960);
                 alert("Kontostand aktualisiert!");
                 loadAdminData();
             } catch (err) {
@@ -1059,10 +1093,11 @@
             }
         };
 
-        window.updateUserClass = async function(docId) {
+        window.updateUserClass = async function(docId, username) {
             const newClass = document.getElementById(`class_${docId}`).value;
             try {
                 await db.collection("users").doc(docId).update({ socialClass: newClass });
+                await sendDiscordWebhook("Soziale Schicht geändert", `Bürger **${username}** ist jetzt in Schicht: **${newClass}**`);
                 alert("Soziale Schicht aktualisiert!");
             } catch (err) {
                 console.error("Fehler:", err);
@@ -1070,10 +1105,11 @@
             }
         };
 
-        window.updateUserJob = async function(docId) {
+        window.updateUserJob = async function(docId, username) {
             const newJob = document.getElementById(`job_${docId}`).value;
             try {
                 await db.collection("users").doc(docId).update({ job: newJob });
+                await sendDiscordWebhook("Beruf geändert", `Bürger **${username}** hat neuen Beruf: **${newJob}**`);
                 alert("Beruf erfolgreich aktualisiert!");
             } catch (err) {
                 console.error("Fehler beim Aktualisieren des Berufs:", err);
@@ -1081,9 +1117,10 @@
             }
         };
 
-        window.toggleAdmin = async function(docId, makeAdmin) {
+        window.toggleAdmin = async function(docId, username, makeAdmin) {
             try {
                 await db.collection("users").doc(docId).update({ isAdmin: makeAdmin });
+                await sendDiscordWebhook("Admin-Status geändert", `Bürger **${username}** ${makeAdmin ? 'ist nun Admin' : 'ist kein Admin mehr'}.`, 15158332);
                 alert(makeAdmin ? "Admin-Rechte vergeben!" : "Admin-Rechte entzogen!");
                 loadAdminData();
             } catch (err) {
@@ -1119,6 +1156,8 @@
                 batch.set(treasuryRef, { totalAmount: newTreasury });
 
                 await batch.commit();
+
+                await sendDiscordWebhook("💰 Gehälter ausgezahlt", `Gesamtauszahlung: **${totalPayout.toLocaleString('de-DE')} €**\nNeue Dorfkasse: **${newTreasury.toLocaleString('de-DE')} €**`, 3066993);
 
                 alert(`Gehälter wurden ausgezahlt!\n\n- Gesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} €\n- Monatliches Dorfeinkommen: +1.620 €\n- Neue Dorfkasse: ${newTreasury.toLocaleString('de-DE')} €`);
                 
@@ -1196,12 +1235,12 @@
                 const btnMinus = document.createElement('button');
                 btnMinus.className = 'ctrl-btn';
                 btnMinus.textContent = '-';
-                btnMinus.onclick = () => updateAmount(id, -1);
+                btnMinus.onclick = () => updateAmount(id, -1, item.name);
 
                 const btnPlus = document.createElement('button');
                 btnPlus.className = 'ctrl-btn';
                 btnPlus.textContent = '+';
-                btnPlus.onclick = () => updateAmount(id, 1);
+                btnPlus.onclick = () => updateAmount(id, 1, item.name);
 
                 row1.appendChild(btnMinus);
                 row1.appendChild(btnPlus);
@@ -1219,7 +1258,7 @@
                 btnSet.className = 'btn btn-sm';
                 btnSet.style.flex = '1';
                 btnSet.textContent = 'Setzen';
-                btnSet.onclick = () => setDirectAmount(id);
+                btnSet.onclick = () => setDirectAmount(id, item.name);
 
                 row2.appendChild(inputNum);
                 row2.appendChild(btnSet);
@@ -1273,6 +1312,7 @@
                 if (savedImageUrl) itemData.imageUrl = savedImageUrl;
 
                 await itemRef.set(itemData);
+                await sendDiscordWebhook("Lager: Gut eingelagert", `**${name}** wurde um **+${qty}** erhöht.\nNeuer Bestand: **${newAmount}**`);
 
                 nameInput.value = '';
                 qtyInput.value = '1';
@@ -1282,7 +1322,7 @@
             }
         };
 
-        window.updateAmount = async function(docId, change) {
+        window.updateAmount = async function(docId, change, itemName) {
             const itemRef = db.collection("inventory").doc(docId);
             const currentAmount = inventoryData[docId]?.amount || 0;
             const newAmount = currentAmount + change;
@@ -1295,6 +1335,7 @@
             try {
                 if (newAmount === 0) {
                     await itemRef.update({ amount: 0 });
+                    await sendDiscordWebhook("Lager: Bestand leer", `Item **${itemName}** ist auf **0** gesunken.`);
 
                     if (!deletionTimers[docId]) {
                         deletionTimers[docId] = setTimeout(async () => {
@@ -1313,13 +1354,15 @@
                         delete deletionTimers[docId];
                     }
                     await itemRef.update({ amount: newAmount });
+                    const sign = change > 0 ? `+${change}` : `${change}`;
+                    await sendDiscordWebhook("Lager geändert", `Item **${itemName}** wurde um **${sign}** geändert.\nNeuer Bestand: **${newAmount}**`);
                 }
             } catch (err) {
                 console.error("Fehler beim Aktualisieren:", err);
             }
         };
 
-        window.setDirectAmount = async function(docId) {
+        window.setDirectAmount = async function(docId, itemName) {
             const inputElement = document.getElementById(`input_qty_${docId}`);
             const newAmount = parseInt(inputElement.value);
 
@@ -1338,6 +1381,7 @@
             try {
                 if (newAmount === 0) {
                     await itemRef.update({ amount: 0 });
+                    await sendDiscordWebhook("Lager: Direkt gesetzt", `Item **${itemName}** wurde direkt auf **0** gesetzt.`);
 
                     if (!deletionTimers[docId]) {
                         deletionTimers[docId] = setTimeout(async () => {
@@ -1356,6 +1400,7 @@
                         delete deletionTimers[docId];
                     }
                     await itemRef.update({ amount: newAmount });
+                    await sendDiscordWebhook("Lager: Direkt gesetzt", `Item **${itemName}** wurde direkt auf **${newAmount}** gesetzt.`);
                 }
             } catch (err) {
                 console.error("Fehler beim Aktualisieren:", err);
@@ -1375,6 +1420,8 @@
 
                 Object.keys(deletionTimers).forEach(id => clearTimeout(deletionTimers[id]));
                 deletionTimers = {};
+
+                await sendDiscordWebhook("⚠️ Lager geleert", `Das gesamte Lager wurde von **${currentUser}** vollständig geleert!`, 15158332);
 
                 alert("Das Lager wurde erfolgreich vollständig geleert!");
                 loadInventory();
