@@ -653,8 +653,7 @@
         let currentUser = sessionStorage.getItem('dorf_current_user') || null;
         let isUserAdmin = false;
         let inventoryData = {};
-        let deletionTimers = {};
-        let accountListener = null; // Für die Echtzeit-Überprüfung
+        let accountListener = null;
 
         const salaries = {
             untere: 630,
@@ -683,11 +682,9 @@
 
         window.addEventListener('hashchange', handleRoute);
 
-        // Überprüft permanent in Echtzeit, ob der eigene Account gelöscht wurde
         function verifyAccountStillExists() {
             if (!currentUser) return;
             
-            // Falls schon ein Listener aktiv ist, abbrechen
             if (accountListener) accountListener();
 
             accountListener = db.collection("users").doc(currentUser.toLowerCase()).onSnapshot((doc) => {
@@ -1310,11 +1307,6 @@
             const docId = name.toLowerCase().replace(/\s+/g, '_');
             const itemRef = db.collection("inventory").doc(docId);
 
-            if (deletionTimers[docId]) {
-                clearTimeout(deletionTimers[docId]);
-                delete deletionTimers[docId];
-            }
-
             try {
                 const itemSnap = await itemRef.get();
                 let newAmount = qty;
@@ -1349,32 +1341,16 @@
             const currentAmount = inventoryData[docId]?.amount || 0;
             const newAmount = currentAmount + change;
 
-            if (newAmount >= 0) {
-                inventoryData[docId].amount = newAmount;
-                renderInventory();
-            }
-
             try {
-                if (newAmount === 0) {
-                    await itemRef.update({ amount: 0 });
-                    await sendDiscordWebhook("Lager: Bestand leer", `Item **${itemName}** ist auf **0** gesunken.`);
-
-                    if (!deletionTimers[docId]) {
-                        deletionTimers[docId] = setTimeout(async () => {
-                            try {
-                                await itemRef.delete();
-                                delete deletionTimers[docId];
-                                loadInventory();
-                            } catch (err) {
-                                console.error("Fehler beim automatischen Löschen:", err);
-                            }
-                        }, 10000);
-                    }
+                if (newAmount < 0) {
+                    // Wenn der Wert unter 0 fällt (also -1), wird das Item gelöscht
+                    await itemRef.delete();
+                    delete inventoryData[docId];
+                    renderInventory();
+                    await sendDiscordWebhook("Lager: Item entfernt", `Item **${itemName}** wurde entfernt (Bestand auf -1).`, 15158332);
                 } else {
-                    if (deletionTimers[docId]) {
-                        clearTimeout(deletionTimers[docId]);
-                        delete deletionTimers[docId];
-                    }
+                    inventoryData[docId].amount = newAmount;
+                    renderInventory();
                     await itemRef.update({ amount: newAmount });
                     const sign = change > 0 ? `+${change}` : `${change}`;
                     await sendDiscordWebhook("Lager geändert", `Item **${itemName}** wurde um **${sign}** geändert.\nNeuer Bestand: **${newAmount}**`);
@@ -1401,29 +1377,8 @@
             }
 
             try {
-                if (newAmount === 0) {
-                    await itemRef.update({ amount: 0 });
-                    await sendDiscordWebhook("Lager: Direkt gesetzt", `Item **${itemName}** wurde direkt auf **0** gesetzt.`);
-
-                    if (!deletionTimers[docId]) {
-                        deletionTimers[docId] = setTimeout(async () => {
-                            try {
-                                await itemRef.delete();
-                                delete deletionTimers[docId];
-                                loadInventory();
-                            } catch (err) {
-                                console.error("Fehler beim automatischen Löschen:", err);
-                            }
-                        }, 10000);
-                    }
-                } else {
-                    if (deletionTimers[docId]) {
-                        clearTimeout(deletionTimers[docId]);
-                        delete deletionTimers[docId];
-                    }
-                    await itemRef.update({ amount: newAmount });
-                    await sendDiscordWebhook("Lager: Direkt gesetzt", `Item **${itemName}** wurde direkt auf **${newAmount}** gesetzt.`);
-                }
+                await itemRef.update({ amount: newAmount });
+                await sendDiscordWebhook("Lager: Direkt gesetzt", `Item **${itemName}** wurde direkt auf **${newAmount}** gesetzt.`);
             } catch (err) {
                 console.error("Fehler beim Aktualisieren:", err);
             }
@@ -1439,9 +1394,6 @@
                     batch.delete(doc.ref);
                 });
                 await batch.commit();
-
-                Object.keys(deletionTimers).forEach(id => clearTimeout(deletionTimers[id]));
-                deletionTimers = {};
 
                 await sendDiscordWebhook("⚠️ Lager geleert", `Das gesamte Lager wurde von **${currentUser}** vollständig geleert!`, 15158332);
 
