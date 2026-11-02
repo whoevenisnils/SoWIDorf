@@ -334,6 +334,7 @@
 
         let currentUser = sessionStorage.getItem('dorf_current_user') || null;
         let inventoryData = {};
+        let deletionTimers = {}; // Speichert die Timer für das 10-Sekunden-Löschen
 
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
@@ -442,9 +443,14 @@
                 inventoryData = {};
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    // Nur anzeigen, wenn Anzahl wirklich grösser als 0 ist
-                    if (data.amount && data.amount > 0) {
+                    if (data && Number(data.amount) >= 0) {
                         inventoryData[doc.id] = data;
+
+                        // Wenn Bestand wieder > 0 ist, laufenden Lösch-Timer automatisch abbrechen!
+                        if (Number(data.amount) > 0 && deletionTimers[doc.id]) {
+                            clearTimeout(deletionTimers[doc.id]);
+                            delete deletionTimers[doc.id];
+                        }
                     }
                 });
                 renderInventory();
@@ -459,6 +465,7 @@
 
             Object.keys(inventoryData).forEach((id) => {
                 const item = inventoryData[id];
+                if (!item || Number(item.amount) < 0) return;
 
                 const option = document.createElement('option');
                 option.value = item.name;
@@ -518,6 +525,12 @@
             const docId = name.toLowerCase().replace(/\s+/g, '_');
             const itemRef = db.collection("inventory").doc(docId);
 
+            // Falls ein Timer lief, direkt abbrechen
+            if (deletionTimers[docId]) {
+                clearTimeout(deletionTimers[docId]);
+                delete deletionTimers[docId];
+            }
+
             try {
                 const itemSnap = await itemRef.get();
                 let newAmount = qty;
@@ -538,25 +551,34 @@
         window.updateAmount = async function(docId, change) {
             const itemRef = db.collection("inventory").doc(docId);
             const currentAmount = inventoryData[docId]?.amount || 0;
-            const newAmount = currentAmount + change;
+            const newAmount = Math.max(0, currentAmount + change); // Geht nicht unter 0
 
-            if (newAmount <= 0) {
-                // Sofort lokal aus der Liste streichen (Bubble verschwindet ohne Verzögerung)
-                delete inventoryData[docId];
-                renderInventory();
+            try {
+                if (newAmount === 0) {
+                    // Auf 0 setzen
+                    await itemRef.update({ amount: 0 });
 
-                // Danach aus der Firebase Datenbank löschen
-                try {
-                    await itemRef.delete();
-                } catch (err) {
-                    console.error("Fehler beim Löschen:", err);
-                }
-            } else {
-                try {
+                    // 10-Sekunden-Timer starten (falls nicht schon läuft)
+                    if (!deletionTimers[docId]) {
+                        deletionTimers[docId] = setTimeout(async () => {
+                            try {
+                                await itemRef.delete();
+                                delete deletionTimers[docId];
+                            } catch (err) {
+                                console.error("Fehler beim automatischen Löschen:", err);
+                            }
+                        }, 10000); // 10000 ms = 10 Sekunden
+                    }
+                } else {
+                    // Wenn wieder erhöht wird: Timer abbrechen falls vorhanden
+                    if (deletionTimers[docId]) {
+                        clearTimeout(deletionTimers[docId]);
+                        delete deletionTimers[docId];
+                    }
                     await itemRef.update({ amount: newAmount });
-                } catch (err) {
-                    console.error("Fehler beim Aktualisieren:", err);
                 }
+            } catch (err) {
+                console.error("Fehler beim Aktualisieren:", err);
             }
         };
     </script>
