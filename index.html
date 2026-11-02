@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dorf-Logistik & Wirtschaft</title>
+    <title>Dorf-Website</title>
     
     <!-- Firebase SDK Compat via CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -409,10 +409,11 @@
 <body>
 
     <header>
-        <h1>🌾 Dorf-Logistik & Wirtschaft</h1>
+        <h1>🌾 Dorf-Website</h1>
         <div id="navMenu" class="nav-links hidden">
             <a href="#inventory" id="navInventory" class="nav-btn">📦 Lager</a>
             <a href="#bank" id="navBank" class="nav-btn">🏛️ Dorf-Bank</a>
+            <a href="#info" id="navInfo" class="nav-btn">📜 Infos & Regeln</a>
             <a href="#admin" id="navAdmin" class="nav-btn hidden">👑 Admin-Menü</a>
         </div>
         <div id="userHeader" class="user-info hidden">
@@ -458,6 +459,18 @@
                     <option value="untere">Untere soziale Schicht (630 € / Monat)</option>
                     <option value="mittlere" selected>Mittlere soziale Schicht (900 € / Monat)</option>
                     <option value="obere">Obere soziale Schicht (1.800 € / Monat)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="regJob">Beruf</label>
+                <select id="regJob" required>
+                    <option value="Kein Beruf" selected>Kein Beruf</option>
+                    <option value="Landwirtschaft">Landwirtschaft</option>
+                    <option value="Köche">Köche</option>
+                    <option value="Handwerker">Handwerker</option>
+                    <option value="Händler">Händler</option>
+                    <option value="Logistiker">Logistiker</option>
+                    <option value="Bürgermeister">Bürgermeister</option>
                 </select>
             </div>
             <button type="submit" class="btn" style="width: 100%;">Account erstellen</button>
@@ -506,11 +519,42 @@
             </div>
         </div>
 
-        <!-- SEITE 3: ADMIN-MENÜ -->
+        <!-- SEITE 3: INFOS & REGELN (NEU) -->
+        <div id="infoPage" class="page">
+            <section class="card">
+                <h2>📜 Dorf-Regeln (Editierbar)</h2>
+                <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Hier können die Regeln des Dorfes eingetragen und von allen Bürgern bearbeitet werden.</p>
+                <div class="form-group">
+                    <textarea id="rulesTextarea" rows="8" placeholder="Schreibe hier die Dorf-Regeln..." style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--dc-border); background-color: var(--dc-bg-primary); color: var(--dc-text-header); font-size: 1rem; resize: vertical;"></textarea>
+                </div>
+                <button class="btn btn-success" onclick="saveRules()">💾 Regeln speichern</button>
+                <span id="rulesSavedStatus" style="color: var(--dc-success); font-size: 0.85rem; margin-left: 1rem;" class="hidden">Gespeichert!</span>
+            </section>
+
+            <section class="card">
+                <h2>👥 Übersicht aller Bürger & Berufe</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bürger</th>
+                                <th>Beruf</th>
+                                <th>Soziale Schicht</th>
+                            </tr>
+                        </thead>
+                        <tbody id="infoCitizensTableBody">
+                            <!-- Dynamisch geladen -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- SEITE 4: ADMIN-MENÜ -->
         <div id="adminPage" class="page">
             <section class="card admin-card">
                 <h2 style="color: var(--dc-danger);">👑 Admin-Steuerungszentrale</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, eigene Item-Icons hochladen, Schichten anpassen, Accounts löschen und das Lager leeren.</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, eigene Item-Icons hochladen, Berufe & Schichten anpassen, Accounts löschen und das Lager leeren.</p>
                 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
                     <button class="btn btn-gold" onclick="distributeSalaries()">💰 Gehälter für alle auszahlen</button>
@@ -541,12 +585,13 @@
                     </div>
                 </div>
 
-                <h2>👥 Bürger-Verwaltung (Schichten, Guthaben, Rechte & Löschen)</h2>
+                <h2>👥 Bürger-Verwaltung (Berufe, Schichten, Guthaben, Rechte & Löschen)</h2>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
                                 <th>Bürger</th>
+                                <th>Beruf</th>
                                 <th>Soziale Schicht</th>
                                 <th>Guthaben</th>
                                 <th>Admin-Status</th>
@@ -589,6 +634,16 @@
             obere: 1800
         };
 
+        const availableJobs = [
+            "Kein Beruf",
+            "Landwirtschaft",
+            "Köche",
+            "Handwerker",
+            "Händler",
+            "Logistiker",
+            "Bürgermeister"
+        ];
+
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 showDashboard();
@@ -627,6 +682,10 @@
                 document.getElementById('bankPage').classList.add('active');
                 document.getElementById('navBank').classList.add('active');
                 loadBankData();
+            } else if (hash === '#info') {
+                document.getElementById('infoPage').classList.add('active');
+                document.getElementById('navInfo').classList.add('active');
+                loadInfoData();
             } else if (hash === '#admin' && isUserAdmin) {
                 document.getElementById('adminPage').classList.add('active');
                 document.getElementById('navAdmin').classList.add('active');
@@ -662,6 +721,7 @@
             const u = document.getElementById('regUser').value.trim();
             const p = document.getElementById('regPass').value;
             const s = document.getElementById('regClass').value;
+            const j = document.getElementById('regJob').value;
 
             if (!u || !p) return;
 
@@ -678,6 +738,7 @@
                     username: u, 
                     password: p, 
                     socialClass: s,
+                    job: j,
                     balance: 0,
                     isAdmin: false
                 });
@@ -685,6 +746,7 @@
                 document.getElementById('regSuccess').classList.remove('hidden');
                 document.getElementById('regUser').value = '';
                 document.getElementById('regPass').value = '';
+                document.getElementById('regJob').value = 'Kein Beruf';
 
                 setTimeout(() => {
                     switchAuthTab('login');
@@ -780,12 +842,59 @@
                     if (userData.socialClass === 'untere') className = 'Untere Schicht';
                     if (userData.socialClass === 'obere') className = 'Obere Schicht';
                     
-                    document.getElementById('myClassInfo').innerText = `Schicht: ${className} (${salaries[userData.socialClass] || 900} € / Monat)`;
+                    const jobName = userData.job || 'Kein Beruf';
+                    document.getElementById('myClassInfo').innerText = `Beruf: ${jobName} | Schicht: ${className} (${salaries[userData.socialClass] || 900} € / Monat)`;
                 }
             } catch (err) {
                 console.error("Fehler beim Laden der Bankdaten:", err);
             }
         }
+
+        async function loadInfoData() {
+            try {
+                // Regeln laden
+                const rulesRef = db.collection("economy").doc("rules");
+                const rulesSnap = await rulesRef.get();
+                if (rulesSnap.exists) {
+                    document.getElementById('rulesTextarea').value = rulesSnap.data().content || '';
+                }
+
+                // Bürger- & Berufsliste laden
+                const usersSnap = await db.collection("users").get();
+                const tbody = document.getElementById('infoCitizensTableBody');
+                tbody.innerHTML = '';
+
+                usersSnap.forEach(doc => {
+                    const data = doc.data();
+                    const row = document.createElement('tr');
+                    let className = 'Mittlere Schicht';
+                    if (data.socialClass === 'untere') className = 'Untere Schicht';
+                    if (data.socialClass === 'obere') className = 'Obere Schicht';
+
+                    row.innerHTML = `
+                        <td><strong>${data.username}</strong></td>
+                        <td><span style="color: var(--dc-brand); font-weight: 500;">${data.job || 'Kein Beruf'}</span></td>
+                        <td>${className}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Fehler beim Laden der Infodaten:", err);
+            }
+        }
+
+        window.saveRules = async function() {
+            const content = document.getElementById('rulesTextarea').value;
+            try {
+                await db.collection("economy").doc("rules").set({ content: content });
+                const status = document.getElementById('rulesSavedStatus');
+                status.classList.remove('hidden');
+                setTimeout(() => status.classList.add('hidden'), 2000);
+            } catch (err) {
+                console.error("Fehler beim Speichern der Regeln:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
 
         async function loadAdminData() {
             try {
@@ -820,9 +929,20 @@
                     const balance = data.balance || 0;
                     const isNils = docId.toLowerCase() === 'nils';
                     const userIsAdmin = data.isAdmin === true || isNils;
+                    const userJob = data.job || 'Kein Beruf';
+
+                    let jobOptionsHtml = '';
+                    availableJobs.forEach(job => {
+                        jobOptionsHtml += `<option value="${job}" ${userJob === job ? 'selected' : ''}>${job}</option>`;
+                    });
 
                     row.innerHTML = `
                         <td><strong>${data.username}</strong> ${isNils ? '(Haupt-Admin)' : ''}</td>
+                        <td>
+                            <select id="job_${docId}" onchange="updateUserJob('${docId}')" style="padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                                ${jobOptionsHtml}
+                            </select>
+                        </td>
                         <td>
                             <select id="class_${docId}" onchange="updateUserClass('${docId}')" style="padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                                 <option value="untere" ${data.socialClass === 'untere' ? 'selected' : ''}>Untere Schicht</option>
@@ -946,6 +1066,17 @@
                 alert("Soziale Schicht aktualisiert!");
             } catch (err) {
                 console.error("Fehler:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
+
+        window.updateUserJob = async function(docId) {
+            const newJob = document.getElementById(`job_${docId}`).value;
+            try {
+                await db.collection("users").doc(docId).update({ job: newJob });
+                alert("Beruf erfolgreich aktualisiert!");
+            } catch (err) {
+                console.error("Fehler beim Aktualisieren des Berufs:", err);
                 alert("Fehler: " + err.message);
             }
         };
