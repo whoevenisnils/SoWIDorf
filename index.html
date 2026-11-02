@@ -319,7 +319,7 @@
 
     </main>
 
-    <!-- FIREBASE LOGIK (KOMPATIBILITÄTS-MODUS) -->
+    <!-- FIREBASE LOGIK -->
     <script>
         // Deine Firebase Konfiguration
         const firebaseConfig = {
@@ -464,17 +464,44 @@
                 option.value = item.name;
                 datalist.appendChild(option);
 
+                // Bubbles sicher über DOM-Elemente erzeugen (keine Syntaxfehler möglich)
                 const bubble = document.createElement('div');
                 bubble.className = 'item-bubble';
-                bubble.innerHTML = `
-                    <div class="item-name">${escapeHtml(item.name)}</div>
-                    <div class="item-count">${item.amount}</div>
-                    <div style="color: var(--text-muted); font-size: 0.85rem;">Einheiten im Lager</div>
-                    <div class="controls">
-                        <button class="ctrl-btn" onclick="updateAmount('${id}', -1)">-</button>
-                        <button class="ctrl-btn" onclick="updateAmount('${id}', 1)">+</button>
-                    </div>
-                `;
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'item-name';
+                nameDiv.textContent = item.name;
+
+                const countDiv = document.createElement('div');
+                countDiv.className = 'item-count';
+                countDiv.textContent = item.amount;
+
+                const labelDiv = document.createElement('div');
+                labelDiv.style.color = 'var(--text-muted)';
+                labelDiv.style.fontSize = '0.85rem';
+                labelDiv.textContent = 'Einheiten im Lager';
+
+                const controls = document.createElement('div');
+                controls.className = 'controls';
+
+                const btnMinus = document.createElement('button');
+                btnMinus.className = 'ctrl-btn';
+                btnMinus.textContent = '-';
+                btnMinus.onclick = () => updateAmount(id, -1);
+
+                const btnPlus = document.createElement('button');
+                btnPlus.className = 'ctrl-btn';
+                btnPlus.textContent = '+';
+                btnPlus.onclick = () => updateAmount(id, 1);
+
+                controls.appendChild(btnMinus);
+                controls.appendChild(btnPlus);
+
+                bubble.appendChild(nameDiv);
+                bubble.appendChild(countDiv);
+                bubble.appendChild(labelDiv);
+                bubble.appendChild(controls);
+
                 grid.appendChild(bubble);
             });
         }
@@ -526,10 +553,6 @@
                 console.error("Fehler beim Aktualisieren:", err);
             }
         };
-
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'");
-        }
     </script>
 </body>
 </html>
