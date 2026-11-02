@@ -308,14 +308,38 @@
 
         .controls {
             display: flex;
+            flex-direction: column;
             gap: 0.5rem;
             width: 100%;
             margin-top: 1rem;
-            align-items: center;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .ctrl-btn {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--dc-bg-tertiary);
+            color: var(--dc-text-normal);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background-color: #35383c;
+            color: var(--dc-text-header);
         }
 
         .controls input {
-            width: 90px;
+            flex: 1;
             padding: 0.4rem;
             background-color: var(--dc-bg-primary);
             border: 1px solid var(--dc-border);
@@ -1028,9 +1052,28 @@
                 labelDiv.style.fontSize = '0.85rem';
                 labelDiv.textContent = 'Einheiten im Lager';
 
-                // NEU: Eingabefeld zum direkten Setzen der Anzahl statt + / - Klicks
+                // Steuerungselemente: Plus/Minus Buttons UND Direktes Setzen
                 const controls = document.createElement('div');
                 controls.className = 'controls';
+
+                const row1 = document.createElement('div');
+                row1.className = 'controls-row';
+
+                const btnMinus = document.createElement('button');
+                btnMinus.className = 'ctrl-btn';
+                btnMinus.textContent = '-';
+                btnMinus.onclick = () => updateAmount(id, -1);
+
+                const btnPlus = document.createElement('button');
+                btnPlus.className = 'ctrl-btn';
+                btnPlus.textContent = '+';
+                btnPlus.onclick = () => updateAmount(id, 1);
+
+                row1.appendChild(btnMinus);
+                row1.appendChild(btnPlus);
+
+                const row2 = document.createElement('div');
+                row2.className = 'controls-row';
 
                 const inputNum = document.createElement('input');
                 inputNum.type = 'number';
@@ -1041,11 +1084,14 @@
                 const btnSet = document.createElement('button');
                 btnSet.className = 'btn btn-sm';
                 btnSet.style.flex = '1';
-                btnSet.textContent = 'Bestand setzen';
+                btnSet.textContent = 'Setzen';
                 btnSet.onclick = () => setDirectAmount(id);
 
-                controls.appendChild(inputNum);
-                controls.appendChild(btnSet);
+                row2.appendChild(inputNum);
+                row2.appendChild(btnSet);
+
+                controls.appendChild(row1);
+                controls.appendChild(row2);
 
                 bubble.appendChild(headerDiv);
                 bubble.appendChild(countDiv);
@@ -1102,7 +1148,45 @@
             }
         };
 
-        // Funktion zum direkten Setzen der Anzahl über das Eingabefeld in der Karte
+        // Plus / Minus Handler
+        window.updateAmount = async function(docId, change) {
+            const itemRef = db.collection("inventory").doc(docId);
+            const currentAmount = inventoryData[docId]?.amount || 0;
+            const newAmount = currentAmount + change;
+
+            if (newAmount >= 0) {
+                inventoryData[docId].amount = newAmount;
+                renderInventory();
+            }
+
+            try {
+                if (newAmount === 0) {
+                    await itemRef.update({ amount: 0 });
+
+                    if (!deletionTimers[docId]) {
+                        deletionTimers[docId] = setTimeout(async () => {
+                            try {
+                                await itemRef.delete();
+                                delete deletionTimers[docId];
+                                loadInventory();
+                            } catch (err) {
+                                console.error("Fehler beim automatischen Löschen:", err);
+                            }
+                        }, 10000);
+                    }
+                } else {
+                    if (deletionTimers[docId]) {
+                        clearTimeout(deletionTimers[docId]);
+                        delete deletionTimers[docId];
+                    }
+                    await itemRef.update({ amount: newAmount });
+                }
+            } catch (err) {
+                console.error("Fehler beim Aktualisieren:", err);
+            }
+        };
+
+        // Direktes Setzen über Eingabefeld
         window.setDirectAmount = async function(docId) {
             const inputElement = document.getElementById(`input_qty_${docId}`);
             const newAmount = parseInt(inputElement.value);
