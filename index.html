@@ -441,7 +441,11 @@
             db.collection("inventory").onSnapshot((snapshot) => {
                 inventoryData = {};
                 snapshot.forEach((doc) => {
-                    inventoryData[doc.id] = doc.data();
+                    const data = doc.data();
+                    // Nur anzeigen, wenn Anzahl wirklich grösser als 0 ist
+                    if (data.amount && data.amount > 0) {
+                        inventoryData[doc.id] = data;
+                    }
                 });
                 renderInventory();
             });
@@ -536,16 +540,23 @@
             const currentAmount = inventoryData[docId]?.amount || 0;
             const newAmount = currentAmount + change;
 
-            try {
-                if (newAmount <= 0) {
-                    // Wenn Bestand 0 oder weniger erreicht -> Dokument komplett löschen
+            if (newAmount <= 0) {
+                // Sofort lokal aus der Liste streichen (Bubble verschwindet ohne Verzögerung)
+                delete inventoryData[docId];
+                renderInventory();
+
+                // Danach aus der Firebase Datenbank löschen
+                try {
                     await itemRef.delete();
-                } else {
-                    // Ansonsten Bestand aktualisieren
-                    await itemRef.update({ amount: newAmount });
+                } catch (err) {
+                    console.error("Fehler beim Löschen:", err);
                 }
-            } catch (err) {
-                console.error("Fehler beim Aktualisieren:", err);
+            } else {
+                try {
+                    await itemRef.update({ amount: newAmount });
+                } catch (err) {
+                    console.error("Fehler beim Aktualisieren:", err);
+                }
             }
         };
     </script>
