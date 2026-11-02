@@ -264,10 +264,25 @@
             transform: translateY(-4px);
         }
 
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            object-fit: cover;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+        }
+
         .item-name {
             font-size: 1.3rem;
             font-weight: bold;
-            margin-bottom: 0.5rem;
             word-break: break-word;
         }
 
@@ -457,11 +472,34 @@
         <div id="adminPage" class="page">
             <section class="card admin-card">
                 <h2 style="color: var(--danger-color);">👑 Admin-Steuerungszentrale</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, Schichten anpassen, Admin-Rechte vergeben und das Lager leeren.</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, KI-Icons generieren, Schichten anpassen, Accounts löschen und das Lager leeren.</p>
                 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
                     <button class="btn btn-gold" onclick="distributeSalaries()">💰 Gehälter für alle auszahlen</button>
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
+                </div>
+
+                <!-- 🎨 NEU: KI-BILD-GENERATOR FÜR ITEMS -->
+                <div style="background-color: var(--bg-color); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; color: var(--accent-color); margin-bottom: 0.5rem;">🖼️ KI-Item-Icon generieren & festlegen</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Wähle ein Item, beschreibe das gewünschte Icon und erstelle eine Vorschau.</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem; max-width: 600px;">
+                        <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                            <select id="adminIconItemSelect" style="flex: 1; min-width: 180px; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px;"></select>
+                            <input type="text" id="adminIconPromptInput" placeholder="z. B. pixel art icon of golden wheat, dark background" style="flex: 2; min-width: 220px; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px;">
+                        </div>
+                        
+                        <button class="btn btn-sm" onclick="generateIconPreview()">🎨 Bild generieren & Vorschau</button>
+
+                        <div id="iconPreviewContainer" class="hidden" style="margin-top: 0.8rem; display: flex; align-items: center; gap: 1rem; background: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <img id="iconPreviewImg" src="" alt="Vorschau" style="width: 64px; height: 64px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: cover;">
+                            <div>
+                                <div style="font-weight: bold; margin-bottom: 0.4rem;">Gefällt dir das Bild?</div>
+                                <button class="btn btn-success btn-sm" onclick="saveGeneratedIcon()">✅ Icon auf dieses Bild festlegen</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- DORFKASSE BEARBEITEN -->
@@ -473,7 +511,7 @@
                     </div>
                 </div>
 
-                <h2>👥 Bürger-Verwaltung (Schichten, Guthaben & Admin-Rechte)</h2>
+                <h2>👥 Bürger-Verwaltung (Schichten, Guthaben, Rechte & Löschen)</h2>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -481,7 +519,8 @@
                                 <th>Bürger</th>
                                 <th>Soziale Schicht</th>
                                 <th>Guthaben</th>
-                                <th>Aktionen & Admin-Status</th>
+                                <th>Admin-Status</th>
+                                <th>Aktionen</th>
                             </tr>
                         </thead>
                         <tbody id="adminCitizensTableBody">
@@ -513,6 +552,7 @@
         let isUserAdmin = false;
         let inventoryData = {};
         let deletionTimers = {};
+        let currentGeneratedUrl = ''; // Speichert temporär die erstelle Bild-URL
 
         const salaries = {
             untere: 630,
@@ -729,7 +769,19 @@
                 }
                 document.getElementById('adminTreasuryInput').value = currentTreasury;
 
-                // 2. User-Liste laden
+                // 2. Dropdown für KI-Icons befüllen
+                const invSnap = await db.collection("inventory").get();
+                const iconSelect = document.getElementById('adminIconItemSelect');
+                iconSelect.innerHTML = '<option value="">-- Item auswählen --</option>';
+                invSnap.forEach(doc => {
+                    const data = doc.data();
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = data.name;
+                    iconSelect.appendChild(opt);
+                });
+
+                // 3. User-Liste laden
                 const snapshot = await db.collection("users").get();
                 const tbody = document.getElementById('adminCitizensTableBody');
                 tbody.innerHTML = '';
@@ -755,7 +807,7 @@
                         <td>
                             <div style="display: flex; gap: 0.5rem; align-items: center;">
                                 <input type="number" id="bal_${docId}" value="${balance}" style="width: 100px; padding: 0.3rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px;">
-                                <button class="btn btn-sm" onclick="updateUserBalance('${docId}')">Guthaben ändern</button>
+                                <button class="btn btn-sm" onclick="updateUserBalance('${docId}')">Ändern</button>
                             </div>
                         </td>
                         <td>
@@ -765,6 +817,9 @@
                                 </button>
                             `}
                         </td>
+                        <td>
+                            ${isNils ? '-' : `<button class="btn btn-danger btn-sm" onclick="deleteUserAccount('${docId}', '${data.username}')">❌ Account löschen</button>`}
+                        </td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -773,7 +828,63 @@
             }
         }
 
-        // Admin-Funktion: Dorfkasse direkt anpassen
+        // 🎨 KI-VORSCHAU GENERIEREN
+        window.generateIconPreview = function() {
+            const itemId = document.getElementById('adminIconItemSelect').value;
+            const prompt = document.getElementById('adminIconPromptInput').value.trim();
+
+            if (!itemId) {
+                alert("Bitte wähle zuerst ein Item aus!");
+                return;
+            }
+            if (!prompt) {
+                alert("Bitte gib ein Prompt für das Bild ein!");
+                return;
+            }
+
+            currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+            
+            const img = document.getElementById('iconPreviewImg');
+            img.src = currentGeneratedUrl;
+            document.getElementById('iconPreviewContainer').classList.remove('hidden');
+        };
+
+        // 🎨 ICON IM ITEM & IN BILDER-BIBLIOTHEK DAUERHAFT SPEICHERN
+        window.saveGeneratedIcon = async function() {
+            const itemId = document.getElementById('adminIconItemSelect').value;
+            if (!itemId || !currentGeneratedUrl) return;
+
+            try {
+                // 1. Im aktuellen Item speichern
+                await db.collection("inventory").doc(itemId).update({ imageUrl: currentGeneratedUrl });
+                
+                // 2. In der Bild-Bibliothek speichern (damit das Bild bleibt, auch wenn Item auf 0 sinkt)
+                await db.collection("item_icons").doc(itemId).set({ imageUrl: currentGeneratedUrl });
+
+                alert("Das Icon wurde erfolgreich gespeichert!");
+                document.getElementById('iconPreviewContainer').classList.add('hidden');
+                document.getElementById('adminIconPromptInput').value = '';
+                loadInventory();
+            } catch (err) {
+                console.error("Fehler beim Speichern des Icons:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
+
+        // ACCOUNT LÖSCHEN
+        window.deleteUserAccount = async function(docId, username) {
+            if (!confirm(`Möchtest du den Account von "${username}" wirklich unwiderruflich löschen?`)) return;
+
+            try {
+                await db.collection("users").doc(docId).delete();
+                alert(`Der Account von ${username} wurde gelöscht.`);
+                loadAdminData();
+            } catch (err) {
+                console.error("Fehler beim Löschen des Accounts:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
+
         window.updateVillageTreasury = async function() {
             const val = document.getElementById('adminTreasuryInput').value;
             const newAmount = Number(val);
@@ -903,9 +1014,22 @@
                 const bubble = document.createElement('div');
                 bubble.className = 'item-bubble';
 
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'item-header';
+
+                // Falls ein KI-Icon vorhanden ist, anzeigen
+                if (item.imageUrl) {
+                    const img = document.createElement('img');
+                    img.className = 'item-icon';
+                    img.src = item.imageUrl;
+                    img.alt = item.name;
+                    headerDiv.appendChild(img);
+                }
+
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'item-name';
                 nameDiv.textContent = item.name;
+                headerDiv.appendChild(nameDiv);
 
                 const countDiv = document.createElement('div');
                 countDiv.className = 'item-count';
@@ -932,7 +1056,7 @@
                 controls.appendChild(btnMinus);
                 controls.appendChild(btnPlus);
 
-                bubble.appendChild(nameDiv);
+                bubble.appendChild(headerDiv);
                 bubble.appendChild(countDiv);
                 bubble.appendChild(labelDiv);
                 bubble.appendChild(controls);
@@ -963,11 +1087,22 @@
                 const itemSnap = await itemRef.get();
                 let newAmount = qty;
 
-                if (itemSnap.exists) {
-                    newAmount = (itemSnap.data().amount || 0) + qty;
+                // Prüfen, ob für dieses Item bereits ein Bild in der Bibliothek existiert!
+                let savedImageUrl = null;
+                const iconSnap = await db.collection("item_icons").doc(docId).get();
+                if (iconSnap.exists) {
+                    savedImageUrl = iconSnap.data().imageUrl;
                 }
 
-                await itemRef.set({ name: name, amount: newAmount });
+                if (itemSnap.exists) {
+                    newAmount = (itemSnap.data().amount || 0) + qty;
+                    savedImageUrl = itemSnap.data().imageUrl || savedImageUrl;
+                }
+
+                const itemData = { name: name, amount: newAmount };
+                if (savedImageUrl) itemData.imageUrl = savedImageUrl;
+
+                await itemRef.set(itemData);
 
                 nameInput.value = '';
                 qtyInput.value = '1';
