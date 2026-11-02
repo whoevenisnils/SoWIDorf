@@ -201,10 +201,25 @@
             transform: translateY(-4px);
         }
 
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+        }
+
         .item-name {
             font-size: 1.3rem;
             font-weight: bold;
-            margin-bottom: 0.5rem;
             word-break: break-word;
         }
 
@@ -334,7 +349,7 @@
 
         let currentUser = sessionStorage.getItem('dorf_current_user') || null;
         let inventoryData = {};
-        let deletionTimers = {}; // Speichert die Timer für das 10-Sekunden-Löschen
+        let deletionTimers = {};
 
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
@@ -446,7 +461,6 @@
                     if (data && Number(data.amount) >= 0) {
                         inventoryData[doc.id] = data;
 
-                        // Wenn Bestand wieder > 0 ist, laufenden Lösch-Timer automatisch abbrechen!
                         if (Number(data.amount) > 0 && deletionTimers[doc.id]) {
                             clearTimeout(deletionTimers[doc.id]);
                             delete deletionTimers[doc.id];
@@ -474,9 +488,22 @@
                 const bubble = document.createElement('div');
                 bubble.className = 'item-bubble';
 
+                // Oberer Bereich mit KI-generiertem Icon und Name
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'item-header';
+
+                const iconImg = document.createElement('img');
+                iconImg.className = 'item-icon';
+                // Generiert automatisch ein sauberes Icon basierend auf dem Item-Namen per KI
+                iconImg.src = `https://image.pollinations.ai/prompt/pixel%20art%20icon%20of%20${encodeURIComponent(item.name)},%20clean%20isolated%20on%20dark%20background`;
+                iconImg.alt = item.name;
+
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'item-name';
                 nameDiv.textContent = item.name;
+
+                headerDiv.appendChild(iconImg);
+                headerDiv.appendChild(nameDiv);
 
                 const countDiv = document.createElement('div');
                 countDiv.className = 'item-count';
@@ -503,7 +530,7 @@
                 controls.appendChild(btnMinus);
                 controls.appendChild(btnPlus);
 
-                bubble.appendChild(nameDiv);
+                bubble.appendChild(headerDiv);
                 bubble.appendChild(countDiv);
                 bubble.appendChild(labelDiv);
                 bubble.appendChild(controls);
@@ -525,7 +552,6 @@
             const docId = name.toLowerCase().replace(/\s+/g, '_');
             const itemRef = db.collection("inventory").doc(docId);
 
-            // Falls ein Timer lief, direkt abbrechen
             if (deletionTimers[docId]) {
                 clearTimeout(deletionTimers[docId]);
                 delete deletionTimers[docId];
@@ -551,14 +577,12 @@
         window.updateAmount = async function(docId, change) {
             const itemRef = db.collection("inventory").doc(docId);
             const currentAmount = inventoryData[docId]?.amount || 0;
-            const newAmount = Math.max(0, currentAmount + change); // Geht nicht unter 0
+            const newAmount = currentAmount + change;
 
             try {
                 if (newAmount === 0) {
-                    // Auf 0 setzen
                     await itemRef.update({ amount: 0 });
 
-                    // 10-Sekunden-Timer starten (falls nicht schon läuft)
                     if (!deletionTimers[docId]) {
                         deletionTimers[docId] = setTimeout(async () => {
                             try {
@@ -567,10 +591,9 @@
                             } catch (err) {
                                 console.error("Fehler beim automatischen Löschen:", err);
                             }
-                        }, 10000); // 10000 ms = 10 Sekunden
+                        }, 10000);
                     }
                 } else {
-                    // Wenn wieder erhöht wird: Timer abbrechen falls vorhanden
                     if (deletionTimers[docId]) {
                         clearTimeout(deletionTimers[docId]);
                         delete deletionTimers[docId];
