@@ -253,7 +253,7 @@
 
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 1.5rem;
         }
 
@@ -303,7 +303,7 @@
             font-size: 2.2rem;
             font-weight: bold;
             color: var(--dc-brand);
-            margin: 0.5rem 0;
+            margin: 0.3rem 0;
         }
 
         .controls {
@@ -311,24 +311,18 @@
             gap: 0.5rem;
             width: 100%;
             margin-top: 1rem;
+            align-items: center;
         }
 
-        .ctrl-btn {
-            flex: 1;
-            padding: 0.6rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 8px;
-            border: none;
-            background-color: var(--dc-bg-tertiary);
-            color: var(--dc-text-normal);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .ctrl-btn:hover {
-            background-color: #35383c;
+        .controls input {
+            width: 90px;
+            padding: 0.4rem;
+            background-color: var(--dc-bg-primary);
+            border: 1px solid var(--dc-border);
             color: var(--dc-text-header);
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1rem;
         }
 
         table {
@@ -832,7 +826,6 @@
             }
         }
 
-        // 📤 EIGENES BILD HOCHLADEN & SPEICHERN
         window.uploadAndSaveItemIcon = function() {
             const itemId = document.getElementById('adminIconItemSelect').value;
             const fileInput = document.getElementById('adminImageIconInput');
@@ -853,7 +846,6 @@
                 const base64Image = e.target.result;
 
                 try {
-                    // In aktuelles Item und in die permanente Bibliothek speichern
                     await db.collection("inventory").doc(itemId).update({ imageUrl: base64Image });
                     await db.collection("item_icons").doc(itemId).set({ imageUrl: base64Image });
 
@@ -1036,21 +1028,24 @@
                 labelDiv.style.fontSize = '0.85rem';
                 labelDiv.textContent = 'Einheiten im Lager';
 
+                // NEU: Eingabefeld zum direkten Setzen der Anzahl statt + / - Klicks
                 const controls = document.createElement('div');
                 controls.className = 'controls';
 
-                const btnMinus = document.createElement('button');
-                btnMinus.className = 'ctrl-btn';
-                btnMinus.textContent = '-';
-                btnMinus.onclick = () => updateAmount(id, -1);
+                const inputNum = document.createElement('input');
+                inputNum.type = 'number';
+                inputNum.value = item.amount;
+                inputNum.min = '0';
+                inputNum.id = `input_qty_${id}`;
 
-                const btnPlus = document.createElement('button');
-                btnPlus.className = 'ctrl-btn';
-                btnPlus.textContent = '+';
-                btnPlus.onclick = () => updateAmount(id, 1);
+                const btnSet = document.createElement('button');
+                btnSet.className = 'btn btn-sm';
+                btnSet.style.flex = '1';
+                btnSet.textContent = 'Bestand setzen';
+                btnSet.onclick = () => setDirectAmount(id);
 
-                controls.appendChild(btnMinus);
-                controls.appendChild(btnPlus);
+                controls.appendChild(inputNum);
+                controls.appendChild(btnSet);
 
                 bubble.appendChild(headerDiv);
                 bubble.appendChild(countDiv);
@@ -1107,12 +1102,19 @@
             }
         };
 
-        window.updateAmount = async function(docId, change) {
-            const itemRef = db.collection("inventory").doc(docId);
-            const currentAmount = inventoryData[docId]?.amount || 0;
-            const newAmount = currentAmount + change;
+        // Funktion zum direkten Setzen der Anzahl über das Eingabefeld in der Karte
+        window.setDirectAmount = async function(docId) {
+            const inputElement = document.getElementById(`input_qty_${docId}`);
+            const newAmount = parseInt(inputElement.value);
 
-            if (newAmount >= 0) {
+            if (isNaN(newAmount) || newAmount < 0) {
+                alert("Bitte gib eine gültige Zahl ein (ab 0)!");
+                return;
+            }
+
+            const itemRef = db.collection("inventory").doc(docId);
+
+            if (inventoryData[docId]) {
                 inventoryData[docId].amount = newAmount;
                 renderInventory();
             }
