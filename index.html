@@ -495,15 +495,15 @@
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
                 </div>
 
-                <!-- BILD-KI GENERATOR -->
+                <!-- NEUE BILD-KI (FLUX ENGINE FÜR HOCHWERTIGE ICONS) -->
                 <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.1rem; color: var(--dc-text-header); margin-bottom: 0.5rem;">🖼️ High-Quality KI-Item-Icon Generator</h3>
-                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Wähle ein Item aus und lass dir ein sauberes, professionelles Icon generieren.</p>
+                    <h3 style="font-size: 1.1rem; color: var(--dc-text-header); margin-bottom: 0.5rem;">🖼️ Flux-Engine KI-Item-Icon Generator</h3>
+                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Wähle ein Item aus und erzeuge gestochen scharfe, detailreiche Icons.</p>
                     
                     <div style="display: flex; flex-direction: column; gap: 0.8rem; max-width: 600px;">
                         <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
                             <select id="adminIconItemSelect" style="flex: 1; min-width: 180px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;"></select>
-                            <input type="text" id="adminIconPromptInput" placeholder="z. B. fantasy game icon of wheat bundle, high quality" style="flex: 2; min-width: 220px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                            <input type="text" id="adminIconPromptInput" placeholder="z. B. wooden log bundle, game icon style" style="flex: 2; min-width: 220px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                         </div>
                         
                         <button class="btn btn-sm" onclick="generateIconPreview()">🎨 Icon generieren & Vorschau</button>
@@ -841,6 +841,7 @@
             }
         }
 
+        // 🎨 WECHSEL AUF DIE FLUX-GENERATOR-API FÜR HOCHWERTIGE ICONS
         window.generateIconPreview = function() {
             const itemId = document.getElementById('adminIconItemSelect').value;
             const prompt = document.getElementById('adminIconPromptInput').value.trim();
@@ -854,7 +855,9 @@
                 return;
             }
 
-            currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ", clean game icon style, sharp focus, isolated on solid dark background")}?width=512&height=512&nologo=true`;
+            // Nutzt die professionelle Flux-Engine mit erzwungenem Game-Icon-Stil
+            const enhancedPrompt = encodeURIComponent(prompt + ", video game icon, clean vector style, sharp details, centered on solid dark background, high resolution");
+            currentGeneratedUrl = `https://pollinations.ai/p/${enhancedPrompt}?width=512&height=512&model=flux&nologo=true`;
             
             const img = document.getElementById('iconPreviewImg');
             img.src = currentGeneratedUrl;
