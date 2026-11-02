@@ -370,7 +370,7 @@
             } else {
                 loginForm.classList.add('hidden');
                 regForm.classList.remove('hidden');
-                loginTab.classList.remove('active');
+                loginTab.classList.add('active');
                 regTab.classList.add('active');
             }
         };
@@ -463,69 +463,3 @@
 
             Object.keys(inventoryData).forEach((id) => {
                 const item = inventoryData[id];
-
-                // Datalist für Vorschläge befüllen
-                const option = document.createElement('option');
-                option.value = item.name;
-                datalist.appendChild(option);
-
-                // Bubble Element
-                const bubble = document.createElement('div');
-                bubble.className = 'item-bubble';
-                bubble.innerHTML = `
-                    <div class="item-name">${escapeHtml(item.name)}</div>
-                    <div class="item-count">${item.amount}</div>
-                    <div style="color: var(--text-muted); font-size: 0.85rem;">Einheiten im Lager</div>
-                    <div class="controls">
-                        <button class="ctrl-btn" onclick="updateAmount('${id}', -1)">-</button>
-                        <button class="ctrl-btn" onclick="updateAmount('${id}', 1)">+</button>
-                    </div>
-                `;
-                grid.appendChild(bubble);
-            });
-        }
-
-        // Neues Item hinzufügen oder aufstocken
-        window.handleAddOrUpdateItem = async function(e) {
-            e.preventDefault();
-            const nameInput = document.getElementById('itemNameInput');
-            const qtyInput = document.getElementById('itemQtyInput');
-
-            const name = nameInput.value.trim();
-            const qty = parseInt(qtyInput.value) || 1;
-
-            if (!name) return;
-
-            const docId = name.toLowerCase().replace(/\s+/g, '_');
-            const itemRef = doc(db, "inventory", docId);
-
-            const itemSnap = await getDoc(itemRef);
-
-            if (itemSnap.exists()) {
-                await updateDoc(itemRef, { amount: increment(qty) });
-            } else {
-                await setDoc(itemRef, { name: name, amount: qty });
-            }
-
-            nameInput.value = '';
-            qtyInput.value = '1';
-        };
-
-        // Menge anpassen (+ / -)
-        window.updateAmount = async function(docId, change) {
-            const itemRef = doc(db, "inventory", docId);
-            const currentAmount = inventoryData[docId]?.amount || 0;
-
-            if (currentAmount + change < 0) {
-                await updateDoc(itemRef, { amount: 0 });
-            } else {
-                await updateDoc(itemRef, { amount: increment(change) });
-            }
-        };
-
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'");
-        }
-    </script>
-</body>
-</html>
