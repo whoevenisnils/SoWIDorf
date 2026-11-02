@@ -269,6 +269,7 @@
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             transition: transform 0.2s, background-color 0.2s;
+            width: 100%;
         }
 
         .item-bubble:hover {
@@ -281,6 +282,8 @@
             align-items: center;
             gap: 0.8rem;
             margin-bottom: 0.5rem;
+            width: 100%;
+            justify-content: center;
         }
 
         .item-icon {
@@ -340,6 +343,7 @@
 
         .controls input {
             flex: 1;
+            width: 100%;
             padding: 0.4rem;
             background-color: var(--dc-bg-primary);
             border: 1px solid var(--dc-border);
@@ -1052,7 +1056,6 @@
                 labelDiv.style.fontSize = '0.85rem';
                 labelDiv.textContent = 'Einheiten im Lager';
 
-                // Steuerungselemente: Plus/Minus Buttons UND Direktes Setzen
                 const controls = document.createElement('div');
                 controls.className = 'controls';
 
@@ -1148,7 +1151,6 @@
             }
         };
 
-        // Plus / Minus Handler
         window.updateAmount = async function(docId, change) {
             const itemRef = db.collection("inventory").doc(docId);
             const currentAmount = inventoryData[docId]?.amount || 0;
@@ -1186,7 +1188,6 @@
             }
         };
 
-        // Direktes Setzen über Eingabefeld
         window.setDirectAmount = async function(docId) {
             const inputElement = document.getElementById(`input_qty_${docId}`);
             const newAmount = parseInt(inputElement.value);
