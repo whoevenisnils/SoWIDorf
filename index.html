@@ -155,6 +155,10 @@
             margin-bottom: 2rem;
         }
 
+        .admin-card {
+            border-color: var(--danger-color);
+        }
+
         .add-item-card h2 {
             font-size: 1.2rem;
             margin-bottom: 1rem;
@@ -201,25 +205,10 @@
             transform: translateY(-4px);
         }
 
-        .item-header {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .item-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            object-fit: cover;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-        }
-
         .item-name {
             font-size: 1.3rem;
             font-weight: bold;
+            margin-bottom: 0.5rem;
             word-break: break-word;
         }
 
@@ -314,6 +303,15 @@
     <!-- MAIN DASHBOARD -->
     <main id="dashboardSection" class="hidden">
         
+        <!-- EXKLUSIVES ADMIN-MENÜ (Nur für Nils) -->
+        <section id="adminSection" class="add-item-card admin-card hidden">
+            <h2 style="color: var(--danger-color);">👑 Admin-Menü (Nur für Nils)</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Willkommen Chef! Hier hast du erweiterte Steuerungsoptionen für das Lager.</p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-danger" onclick="resetEntireInventory()">Gesamtes Lager leeren</button>
+            </div>
+        </section>
+
         <section class="add-item-card">
             <h2>📦 Neues Gut einlagern / Bestände erhöhen</h2>
             <form class="add-item-form" onsubmit="handleAddOrUpdateItem(event)">
@@ -450,8 +448,36 @@
             document.getElementById('userHeader').classList.remove('hidden');
             document.getElementById('currentUsername').innerText = currentUser;
 
+            const adminSection = document.getElementById('adminSection');
+            if (currentUser && currentUser.toLowerCase() === 'nils') {
+                adminSection.classList.remove('hidden');
+            } else {
+                adminSection.classList.add('hidden');
+            }
+
             listenToInventory();
         }
+
+        window.resetEntireInventory = async function() {
+            if (!confirm("Möchtest du wirklich das gesamte Lager leeren? Alle Items werden gelöscht!")) return;
+            
+            try {
+                const snapshot = await db.collection("inventory").get();
+                const batch = db.batch();
+                snapshot.forEach((doc) => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+
+                Object.keys(deletionTimers).forEach(id => clearTimeout(deletionTimers[id]));
+                deletionTimers = {};
+
+                alert("Das Lager wurde erfolgreich vollständig geleert!");
+            } catch (err) {
+                console.error("Fehler beim Leeren des Lagers:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
 
         function listenToInventory() {
             db.collection("inventory").onSnapshot((snapshot) => {
@@ -488,22 +514,9 @@
                 const bubble = document.createElement('div');
                 bubble.className = 'item-bubble';
 
-                // Oberer Bereich mit KI-generiertem Icon und Name
-                const headerDiv = document.createElement('div');
-                headerDiv.className = 'item-header';
-
-                const iconImg = document.createElement('img');
-                iconImg.className = 'item-icon';
-                // Generiert automatisch ein sauberes Icon basierend auf dem Item-Namen per KI
-                iconImg.src = `https://image.pollinations.ai/prompt/pixel%20art%20icon%20of%20${encodeURIComponent(item.name)},%20clean%20isolated%20on%20dark%20background`;
-                iconImg.alt = item.name;
-
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'item-name';
                 nameDiv.textContent = item.name;
-
-                headerDiv.appendChild(iconImg);
-                headerDiv.appendChild(nameDiv);
 
                 const countDiv = document.createElement('div');
                 countDiv.className = 'item-count';
@@ -530,7 +543,7 @@
                 controls.appendChild(btnMinus);
                 controls.appendChild(btnPlus);
 
-                bubble.appendChild(headerDiv);
+                bubble.appendChild(nameDiv);
                 bubble.appendChild(countDiv);
                 bubble.appendChild(labelDiv);
                 bubble.appendChild(controls);
