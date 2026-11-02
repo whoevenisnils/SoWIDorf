@@ -288,40 +288,23 @@
             background-color: var(--border-color);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        th, td {
-            padding: 0.8rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            color: var(--accent-color);
-            font-weight: bold;
-        }
-
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
         .stat-box {
-            background-color: var(--bg-color);
+            background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             padding: 1.5rem;
-            border-radius: 10px;
+            border-radius: 12px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: bold;
             color: var(--gold-color);
             margin-top: 0.5rem;
@@ -400,7 +383,7 @@
     <!-- MAIN DASHBOARD -->
     <main id="dashboardSection" class="hidden">
         
-        <!-- SEITE 1: LAGER -->
+        <!-- SEITE 1: LAGER (Statisch ohne Live-Sync) -->
         <div id="inventoryPage" class="page">
             <section class="card">
                 <h2>📦 Neues Gut einlagern / Bestände erhöhen</h2>
@@ -414,7 +397,10 @@
             </section>
 
             <section>
-                <h2 style="margin-bottom: 1rem;">Aktueller Lagerbestand (Live-Sync ⚡)</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2>Aktueller Lagerbestand</h2>
+                    <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="loadInventory()">🔄 Aktualisieren</button>
+                </div>
                 <div id="inventoryGrid" class="inventory-grid"></div>
             </section>
         </div>
@@ -423,32 +409,22 @@
         <div id="bankPage" class="page">
             <div class="stats-grid">
                 <div class="stat-box">
-                    <div>🏛️ Monatliches Dorfeinkommen</div>
-                    <div id="villageIncome" class="stat-value">1.620 €</div>
+                    <div>🏛️ Gesamtes Vermögen des Dorfes (Dorfkasse)</div>
+                    <div id="villageTreasury" class="stat-value">0 €</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Einnahmen: 1.620 € / Monat</div>
                 </div>
                 <div class="stat-box">
-                    <div>👥 Anzahl registrierte Bürger</div>
-                    <div id="citizenCount" class="stat-value">0</div>
+                    <div>💳 Mein persönlicher Kontostand</div>
+                    <div id="myBalance" class="stat-value">0 €</div>
+                    <div id="myClassInfo" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Schicht: -</div>
                 </div>
             </div>
 
             <section class="card">
-                <h2>📜 Bürger-Gehaltsübersicht</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Hier sieht jeder Bürger die Einkommen und Schichten aller Dorfbewohner.</p>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Bürger</th>
-                                <th>Soziale Schicht</th>
-                                <th>Monatliches Gehalt</th>
-                            </tr>
-                        </thead>
-                        <tbody id="citizensTableBody">
-                            <!-- Dynamische Liste -->
-                        </tbody>
-                    </table>
-                </div>
+                <h2>ℹ️ Hinweis zur Transparenz</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">
+                    Aus Datenschutzgründen sieht jeder Bürger der Gemeinde ausschließlich seinen eigenen Kontostand sowie das aktuelle Gesamtvermögen der Dorfkasse.
+                </p>
             </section>
         </div>
 
@@ -500,7 +476,6 @@
             }
         });
 
-        // URL-Hash Überwachung für echtes Seiten-Wechseln per URL
         window.addEventListener('hashchange', handleRoute);
 
         function handleRoute() {
@@ -519,9 +494,9 @@
                 document.getElementById('adminPage').classList.add('active');
                 document.getElementById('navAdmin').classList.add('active');
             } else {
-                // Standard: Lager
                 document.getElementById('inventoryPage').classList.add('active');
                 document.getElementById('navInventory').classList.add('active');
+                loadInventory(); // Statisch laden
             }
         }
 
@@ -561,7 +536,13 @@
                     return;
                 }
 
-                await userRef.set({ username: u, password: p, socialClass: s });
+                // Account anlegen mit Startguthaben 0 €
+                await userRef.set({ 
+                    username: u, 
+                    password: p, 
+                    socialClass: s,
+                    balance: 0 
+                });
 
                 document.getElementById('regSuccess').classList.remove('hidden');
                 document.getElementById('regUser').value = '';
@@ -627,107 +608,102 @@
                 navAdmin.classList.add('hidden');
             }
 
-            // Wenn kein Hash da ist, standardmäßig zum Lager
             if (!window.location.hash || window.location.hash === '#') {
                 window.location.hash = '#inventory';
             } else {
                 handleRoute();
             }
-
-            listenToInventory();
         }
 
+        // Bank-Daten laden (Nur eigenes Geld & Gesamtes Vermögen)
         async function loadBankData() {
             try {
-                const snapshot = await db.collection("users").get();
-                const tbody = document.getElementById('citizensTableBody');
-                tbody.innerHTML = '';
-                let count = 0;
+                // 1. Dorfkasse laden
+                const treasuryRef = db.collection("economy").doc("treasury");
+                const treasurySnap = await treasuryRef.get();
+                let villageBalance = 10000; // Startwert der Dorfkasse
 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    count++;
-                    const row = document.createElement('tr');
-                    
+                if (treasurySnap.exists) {
+                    villageBalance = treasurySnap.data().totalAmount || 0;
+                } else {
+                    await treasuryRef.set({ totalAmount: villageBalance });
+                }
+                document.getElementById('villageTreasury').innerText = villageBalance.toLocaleString('de-DE') + ' €';
+
+                // 2. Eigenen Account laden
+                const userRef = db.collection("users").doc(currentUser.toLowerCase());
+                const userSnap = await userRef.get();
+
+                if (userSnap.exists) {
+                    const userData = userSnap.data();
+                    const balance = userData.balance || 0;
+                    document.getElementById('myBalance').innerText = balance.toLocaleString('de-DE') + ' €';
+
                     let className = 'Mittlere Schicht';
-                    if (data.socialClass === 'untere') className = 'Untere Schicht';
-                    if (data.socialClass === 'obere') className = 'Obere Schicht';
+                    if (userData.socialClass === 'untere') className = 'Untere Schicht';
+                    if (userData.socialClass === 'obere') className = 'Obere Schicht';
                     
-                    const salary = salaries[data.socialClass] || 900;
-
-                    row.innerHTML = `
-                        <td><strong>${data.username}</strong></td>
-                        <td>${className}</td>
-                        <td>${salary.toLocaleString('de-DE')} € / Monat</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-                document.getElementById('citizenCount').innerText = count;
+                    document.getElementById('myClassInfo').innerText = `Schicht: ${className} (${salaries[userData.socialClass] || 900} € / Monat)`;
+                }
             } catch (err) {
                 console.error("Fehler beim Laden der Bankdaten:", err);
             }
         }
 
+        // Admin-Funktion: Gehälter auszahlen (zieht Geld aus der Dorfkasse und verteilt es auf User-Konten)
         window.distributeSalaries = async function() {
             try {
-                const snapshot = await db.collection("users").get();
-                let totalPayout = 0;
-                let summary = "Gehälter wurden erfolgreich ausgezahlt:\n\n";
+                const usersSnap = await db.collection("users").get();
+                const treasuryRef = db.collection("economy").doc("treasury");
+                const treasurySnap = await treasuryRef.get();
+                
+                let currentTreasury = 10000;
+                if (treasurySnap.exists) {
+                    currentTreasury = treasurySnap.data().totalAmount || 0;
+                }
 
-                snapshot.forEach(doc => {
+                let totalPayout = 0;
+                const batch = db.batch();
+
+                usersSnap.forEach(doc => {
                     const data = doc.data();
                     const salary = salaries[data.socialClass] || 900;
                     totalPayout += salary;
-                    summary += `- ${data.username} (${data.socialClass}): ${salary.toLocaleString('de-DE')} €\n`;
+                    
+                    const newBalance = (data.balance || 0) + salary;
+                    batch.update(doc.ref, { balance: newBalance });
                 });
 
-                const villageIncome = 1620;
-                summary += `\nGesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} €\nMonatliches Dorfeinkommen: ${villageIncome.toLocaleString('de-DE')} €`;
+                // Neue Dorfkasse berechnen (Dorfeinkommen + 1.620 € abzüglich Gehälter)
+                const newTreasury = currentTreasury + 1620 - totalPayout;
+                batch.set(treasuryRef, { totalAmount: newTreasury });
 
-                alert(summary);
+                await batch.commit();
+
+                alert(`Gehälter wurden ausgezahlt!\n\n- Gesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} €\n- Monatliches Dorfeinkommen: +1.620 €\n- Neue Dorfkasse: ${newTreasury.toLocaleString('de-DE')} €`);
+                
+                loadBankData();
             } catch (err) {
                 console.error("Fehler beim Auszahlen:", err);
                 alert("Fehler: " + err.message);
             }
         };
 
-        window.resetEntireInventory = async function() {
-            if (!confirm("Möchtest du wirklich das gesamte Lager leeren?")) return;
-            
+        // STATISCHES LAGER (Kein Live-Sync / onSnapshot mehr)
+        async function loadInventory() {
             try {
                 const snapshot = await db.collection("inventory").get();
-                const batch = db.batch();
-                snapshot.forEach((doc) => {
-                    batch.delete(doc.ref);
-                });
-                await batch.commit();
-
-                Object.keys(deletionTimers).forEach(id => clearTimeout(deletionTimers[id]));
-                deletionTimers = {};
-
-                alert("Das Lager wurde erfolgreich vollständig geleert!");
-            } catch (err) {
-                console.error("Fehler:", err);
-            }
-        };
-
-        function listenToInventory() {
-            db.collection("inventory").onSnapshot((snapshot) => {
                 inventoryData = {};
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     if (data && Number(data.amount) >= 0) {
                         inventoryData[doc.id] = data;
-
-                        if (Number(data.amount) > 0 && deletionTimers[doc.id]) {
-                            clearTimeout(deletionTimers[doc.id]);
-                            delete deletionTimers[doc.id];
-                        }
                     }
                 });
                 renderInventory();
-            });
+            } catch (err) {
+                console.error("Fehler beim Laden des Lagers:", err);
+            }
         }
 
         function renderInventory() {
@@ -761,7 +737,7 @@
                 labelDiv.textContent = 'Einheiten im Lager';
 
                 const controls = document.createElement('div');
-                controls.className, 'controls';
+                controls.className = 'controls';
 
                 const btnMinus = document.createElement('button');
                 btnMinus.className = 'ctrl-btn';
@@ -815,6 +791,7 @@
 
                 nameInput.value = '';
                 qtyInput.value = '1';
+                loadInventory(); // Nach dem Hinzufügen neu laden
             } catch (err) {
                 console.error("Fehler beim Einlagern:", err);
             }
@@ -825,6 +802,12 @@
             const currentAmount = inventoryData[docId]?.amount || 0;
             const newAmount = currentAmount + change;
 
+            // Lokales UI sofort aktualisieren
+            if (newAmount >= 0) {
+                inventoryData[docId].amount = newAmount;
+                renderInventory();
+            }
+
             try {
                 if (newAmount === 0) {
                     await itemRef.update({ amount: 0 });
@@ -834,6 +817,7 @@
                             try {
                                 await itemRef.delete();
                                 delete deletionTimers[docId];
+                                loadInventory();
                             } catch (err) {
                                 console.error("Fehler beim automatischen Löschen:", err);
                             }
@@ -848,6 +832,27 @@
                 }
             } catch (err) {
                 console.error("Fehler beim Aktualisieren:", err);
+            }
+        };
+
+        window.resetEntireInventory = async function() {
+            if (!confirm("Möchtest du wirklich das gesamte Lager leeren?")) return;
+            
+            try {
+                const snapshot = await db.collection("inventory").get();
+                const batch = db.batch();
+                snapshot.forEach((doc) => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+
+                Object.keys(deletionTimers).forEach(id => clearTimeout(deletionTimers[id]));
+                deletionTimers = {};
+
+                alert("Das Lager wurde erfolgreich vollständig geleert!");
+                loadInventory();
+            } catch (err) {
+                console.error("Fehler:", err);
             }
         };
     </script>
