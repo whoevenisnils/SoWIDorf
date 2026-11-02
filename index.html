@@ -582,6 +582,808 @@
 
                 nameInput.value = '';
                 qtyInput.value = '1';
+            } catch (err) {<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dorf-Logistik & Wirtschaft</title>
+    
+    <!-- Firebase SDK Compat via CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --accent-hover: #0284c7;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --border-color: #334155;
+            --gold-color: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active, .nav-btn:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border-color: var(--accent-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-gold {
+            background-color: var(--gold-color);
+            color: var(--bg-color);
+        }
+
+        .btn-gold:hover {
+            background-color: #d97706;
+        }
+
+        .auth-container {
+            max-width: 400px;
+            margin: 4rem auto;
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 90%;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.8rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: 2px solid var(--accent-color);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+        .admin-card {
+            border-color: var(--danger-color);
+        }
+
+        .add-item-form {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .add-item-form input {
+            flex: 1;
+            min-width: 150px;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .item-bubble {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .item-bubble:hover {
+            transform: translateY(-4px);
+        }
+
+        .item-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+        }
+
+        .item-count {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 0.5rem 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .ctrl-btn {
+            flex: 1;
+            padding: 0.6rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--gold-color);
+            margin-top: 0.5rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .alert {
+            color: var(--danger-color);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🌾 Dorf-Logistik & Wirtschaft</h1>
+        <div id="navMenu" class="nav-links hidden">
+            <button class="nav-btn active" onclick="switchPage('inventory')">📦 Lager</button>
+            <button class="nav-btn" onclick="switchPage('bank')">🏛️ Dorf-Bank</button>
+            <button id="adminNavBtn" class="nav-btn hidden" onclick="switchPage('admin')">👑 Admin-Menü</button>
+        </div>
+        <div id="userHeader" class="user-info hidden">
+            <span>Angemeldet als: <strong id="currentUsername" style="color: var(--accent-color);"></strong></span>
+            <button class="btn btn-danger" onclick="logout()">Abmelden</button>
+        </div>
+    </header>
+
+    <!-- AUTH SECTION -->
+    <div id="authSection" class="auth-container">
+        <div class="auth-tabs">
+            <button id="loginTab" class="tab-btn active" onclick="switchAuthTab('login')">Anmelden</button>
+            <button id="registerTab" class="tab-btn" onclick="switchAuthTab('register')">Registrieren</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="loginUser">Bürger-Name</label>
+                <input type="text" id="loginUser" required placeholder="z. B. Nils">
+            </div>
+            <div class="form-group">
+                <label for="loginPass">Passwort</label>
+                <input type="password" id="loginPass" required>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Einloggen</button>
+            <p id="loginError" class="alert hidden">Name oder Passwort falsch!</p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label for="regUser">Neuer Bürger-Name</label>
+                <input type="text" id="regUser" required placeholder="Dein Name">
+            </div>
+            <div class="form-group">
+                <label for="regPass">Passwort festlegen</label>
+                <input type="password" id="regPass" required>
+            </div>
+            <div class="form-group">
+                <label for="regClass">Soziale Schicht</label>
+                <select id="regClass" required>
+                    <option value="untere">Untere soziale Schicht (630 € / Monat)</option>
+                    <option value="mittlere" selected>Mittlere soziale Schicht (900 € / Monat)</option>
+                    <option value="obere">Obere soziale Schicht (1.800 € / Monat)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Account erstellen</button>
+            <p id="regSuccess" style="color: var(--success-color); font-size: 0.85rem; margin-top: 0.5rem;" class="hidden">Account erstellt! Du kannst dich jetzt einloggen.</p>
+        </form>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <main id="dashboardSection" class="hidden">
+        
+        <!-- SEITE 1: LAGER -->
+        <div id="inventoryPage" class="page active">
+            <section class="card">
+                <h2>📦 Neues Gut einlagern / Bestände erhöhen</h2>
+                <form class="add-item-form" onsubmit="handleAddOrUpdateItem(event)">
+                    <input type="text" id="itemNameInput" list="existingItemsDatalist" placeholder="Gegenstand (z. B. Weizen, Holz...)" required autocomplete="off">
+                    <datalist id="existingItemsDatalist"></datalist>
+
+                    <input type="number" id="itemQtyInput" placeholder="Anzahl" min="1" value="1" required>
+                    <button type="submit" class="btn">Einlagern</button>
+                </form>
+            </section>
+
+            <section>
+                <h2 style="margin-bottom: 1rem;">Aktueller Lagerbestand (Live-Sync ⚡)</h2>
+                <div id="inventoryGrid" class="inventory-grid"></div>
+            </section>
+        </div>
+
+        <!-- SEITE 2: DORF-BANK -->
+        <div id="bankPage" class="page">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div>🏛️ Monatliches Dorfeinkommen</div>
+                    <div id="villageIncome" class="stat-value">1.620 €</div>
+                </div>
+                <div class="stat-box">
+                    <div>👥 Anzahl registrierte Bürger</div>
+                    <div id="citizenCount" class="stat-value">0</div>
+                </div>
+            </div>
+
+            <section class="card">
+                <h2>📜 Bürger-Gehaltsübersicht</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Hier sieht jeder Bürger die Einkommen und Schichten aller Dorfbewohner.</p>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bürger</th>
+                                <th>Soziale Schicht</th>
+                                <th>Monatliches Gehalt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="citizensTableBody">
+                            <!-- Dynamische Liste -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- SEITE 3: ADMIN-MENÜ (Nur für Nils) -->
+        <div id="adminPage" class="page">
+            <section class="card admin-card">
+                <h2 style="color: var(--danger-color);">👑 Admin-Steuerungszentrale</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Als Bürgermeister (Nils) kannst du hier administrative Aktionen ausführen.</p>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-gold" onclick="distributeSalaries()">💰 Gehälter für alle auszahlen</button>
+                    <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- FIREBASE LOGIK -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQ3oZwxLGbzGTTWoNa4uxHzjICkCo_wlE",
+            authDomain: "sowidorf.firebaseapp.com",
+            projectId: "sowidorf",
+            storageBucket: "sowidorf.firebasestorage.app",
+            messagingSenderId: "457633951874",
+            appId: "1:457633951874:web:10b6e47b79dbb4bf32849b",
+            measurementId: "G-EP5QG6GBPV"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let currentUser = sessionStorage.getItem('dorf_current_user') || null;
+        let inventoryData = {};
+        let deletionTimers = {};
+
+        const salaries = {
+            untere: 630,
+            mittlere: 900,
+            obere: 1800
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (currentUser) {
+                showDashboard();
+            } else {
+                showAuth();
+            }
+        });
+
+        window.switchAuthTab = function(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const loginTab = document.getElementById('loginTab');
+            const regTab = document.getElementById('registerTab');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                loginTab.classList.add('active');
+                regTab.classList.remove('active');
+            } else {
+                loginForm.classList.add('hidden');
+                regForm.classList.remove('hidden');
+                loginTab.classList.remove('active');
+                regTab.classList.add('active');
+            }
+        };
+
+        window.switchPage = function(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            if (pageId === 'inventory') {
+                document.getElementById('inventoryPage').classList.add('active');
+                event.target.classList.add('active');
+            } else if (pageId === 'bank') {
+                document.getElementById('bankPage').classList.add('active');
+                event.target.classList.add('active');
+                loadBankData();
+            } else if (pageId === 'admin') {
+                document.getElementById('adminPage').classList.add('active');
+                event.target.classList.add('active');
+            }
+        };
+
+        window.handleRegister = async function(e) {
+            e.preventDefault();
+            const u = document.getElementById('regUser').value.trim();
+            const p = document.getElementById('regPass').value;
+            const s = document.getElementById('regClass').value;
+
+            if (!u || !p) return;
+
+            try {
+                const userRef = db.collection("users").doc(u.toLowerCase());
+                const userSnap = await userRef.get();
+
+                if (userSnap.exists) {
+                    alert('Dieser Bürger-Name existiert bereits!');
+                    return;
+                }
+
+                await userRef.set({ username: u, password: p, socialClass: s });
+
+                document.getElementById('regSuccess').classList.remove('hidden');
+                document.getElementById('regUser').value = '';
+                document.getElementById('regPass').value = '';
+
+                setTimeout(() => {
+                    switchAuthTab('login');
+                    document.getElementById('regSuccess').classList.add('hidden');
+                }, 1500);
+            } catch (err) {
+                console.error("Fehler bei Registrierung:", err);
+                alert("Fehler beim Speichern: " + err.message);
+            }
+        };
+
+        window.handleLogin = async function(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value;
+
+            try {
+                const userRef = db.collection("users").doc(u.toLowerCase());
+                const userSnap = await userRef.get();
+
+                if (userSnap.exists && userSnap.data().password === p) {
+                    currentUser = userSnap.data().username;
+                    sessionStorage.setItem('dorf_current_user', currentUser);
+                    document.getElementById('loginError').classList.add('hidden');
+                    showDashboard();
+                } else {
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error("Fehler beim Login:", err);
+            }
+        };
+
+        window.logout = function() {
+            sessionStorage.removeItem('dorf_current_user');
+            currentUser = null;
+            showAuth();
+        };
+
+        function showAuth() {
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('userHeader').classList.add('hidden');
+            document.getElementById('navMenu').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('userHeader').classList.remove('hidden');
+            document.getElementById('navMenu').classList.remove('hidden');
+            document.getElementById('currentUsername').innerText = currentUser;
+
+            const adminNavBtn = document.getElementById('adminNavBtn');
+            if (currentUser && currentUser.toLowerCase() === 'nils') {
+                adminNavBtn.classList.remove('hidden');
+            } else {
+                adminNavBtn.classList.add('hidden');
+            }
+
+            listenToInventory();
+        }
+
+        // Bank-Daten laden und anzeigen
+        async function loadBankData() {
+            try {
+                const snapshot = await db.collection("users").get();
+                const tbody = document.getElementById('citizensTableBody');
+                tbody.innerHTML = '';
+                let count = 0;
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    count++;
+                    const row = document.createElement('tr');
+                    
+                    let className = 'Mittlere Schicht';
+                    if (data.socialClass === 'untere') className = 'Untere Schicht';
+                    if (data.socialClass === 'obere') className = 'Obere Schicht';
+                    
+                    const salary = salaries[data.socialClass] || 900;
+
+                    row.innerHTML = `
+                        <td><strong>${data.username}</strong></td>
+                        <td>${className}</td>
+                        <td>${salary.toLocaleString('de-DE')} € / Monat</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('citizenCount').innerText = count;
+            } catch (err) {
+                console.error("Fehler beim Laden der Bankdaten:", err);
+            }
+        }
+
+        // Admin-Funktion: Gehälter auszahlen
+        window.distributeSalaries = async function() {
+            try {
+                const snapshot = await db.collection("users").get();
+                let totalPayout = 0;
+                let summary = "Gehälter wurden erfolgreich ausgezahlt:\n\n";
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const salary = salaries[data.socialClass] || 900;
+                    totalPayout += salary;
+                    summary += `- ${data.username} (${data.socialClass}): ${salary.toLocaleString('de-DE')} €\n`;
+                });
+
+                const villageIncome = 1620;
+                summary += `\nGesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} €\nMonatliches Dorfeinkommen: ${villageIncome.toLocaleString('de-DE')} €`;
+
+                alert(summary);
+            } catch (err) {
+                console.error("Fehler beim Auszahlen:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
+
+        window.resetEntireInventory = async function() {
+            if (!confirm("Möchtest du wirklich das gesamte Lager leeren?")) return;
+            
+            try {
+                const snapshot = await db.collection("inventory").get();
+                const batch = db.batch();
+                snapshot.forEach((doc) => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+
+                Object.keys(deletionTimers).forEach(id => clearTimeout(deletionTimers[id]));
+                deletionTimers = {};
+
+                alert("Das Lager wurde erfolgreich vollständig geleert!");
+            } catch (err) {
+                console.error("Fehler:", err);
+            }
+        };
+
+        function listenToInventory() {
+            db.collection("inventory").onSnapshot((snapshot) => {
+                inventoryData = {};
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data && Number(data.amount) >= 0) {
+                        inventoryData[doc.id] = data;
+
+                        if (Number(data.amount) > 0 && deletionTimers[doc.id]) {
+                            clearTimeout(deletionTimers[doc.id]);
+                            delete deletionTimers[doc.id];
+                        }
+                    }
+                });
+                renderInventory();
+            });
+        }
+
+        function renderInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            const datalist = document.getElementById('existingItemsDatalist');
+            grid.innerHTML = '';
+            datalist.innerHTML = '';
+
+            Object.keys(inventoryData).forEach((id) => {
+                const item = inventoryData[id];
+                if (!item || Number(item.amount) < 0) return;
+
+                const option = document.createElement('option');
+                option.value = item.name;
+                datalist.appendChild(option);
+
+                const bubble = document.createElement('div');
+                bubble.className = 'item-bubble';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'item-name';
+                nameDiv.textContent = item.name;
+
+                const countDiv = document.createElement('div');
+                countDiv.className = 'item-count';
+                countDiv.textContent = item.amount;
+
+                const labelDiv = document.createElement('div');
+                labelDiv.style.color = 'var(--text-muted)';
+                labelDiv.style.fontSize = '0.85rem';
+                labelDiv.textContent = 'Einheiten im Lager';
+
+                const controls = document.createElement('div');
+                controls.className = 'controls';
+
+                const btnMinus = document.createElement('button');
+                btnMinus.className = 'ctrl-btn';
+                btnMinus.textContent = '-';
+                btnMinus.onclick = () => updateAmount(id, -1);
+
+                const btnPlus = document.createElement('button');
+                btnPlus.className = 'ctrl-btn';
+                btnPlus.textContent = '+';
+                btnPlus.onclick = () => updateAmount(id, 1);
+
+                controls.appendChild(btnMinus);
+                controls.appendChild(btnPlus);
+
+                bubble.appendChild(nameDiv);
+                bubble.appendChild(countDiv);
+                bubble.appendChild(labelDiv);
+                bubble.appendChild(controls);
+
+                grid.appendChild(bubble);
+            });
+        }
+
+        window.handleAddOrUpdateItem = async function(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('itemNameInput');
+            const qtyInput = document.getElementById('itemQtyInput');
+
+            const name = nameInput.value.trim();
+            const qty = parseInt(qtyInput.value) || 1;
+
+            if (!name) return;
+
+            const docId = name.toLowerCase().replace(/\s+/g, '_');
+            const itemRef = db.collection("inventory").doc(docId);
+
+            if (deletionTimers[docId]) {
+                clearTimeout(deletionTimers[docId]);
+                delete deletionTimers[docId];
+            }
+
+            try {
+                const itemSnap = await itemRef.get();
+                let newAmount = qty;
+
+                if (itemSnap.exists) {
+                    newAmount = (itemSnap.data().amount || 0) + qty;
+                }
+
+                await itemRef.set({ name: name, amount: newAmount });
+
+                nameInput.value = '';
+                qtyInput.value = '1';
             } catch (err) {
                 console.error("Fehler beim Einlagern:", err);
             }
