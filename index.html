@@ -522,7 +522,7 @@
         <!-- SEITE 3: INFOS & REGELN -->
         <div id="infoPage" class="page">
             <section class="card">
-                <h2>📜 Dorf-Regeln (Editierbar)</h2>
+                <h2>📜 Dorf-Regeln</h2>
                 <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Hier können die Regeln des Dorfes eingetragen und von allen Bürgern bearbeitet werden.</p>
                 <div class="form-group">
                     <textarea id="rulesTextarea" rows="8" placeholder="Schreibe hier die Dorf-Regeln..." style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--dc-border); background-color: var(--dc-bg-primary); color: var(--dc-text-header); font-size: 1rem; resize: vertical;"></textarea>
@@ -1390,6 +1390,7 @@
             try {
                 const snapshot = await db.collection("inventory").get();
                 const batch = db.batch();
+                snapshot.option = true; // placeholder
                 snapshot.forEach((doc) => {
                     batch.delete(doc.ref);
                 });
