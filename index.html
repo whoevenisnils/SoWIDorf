@@ -122,6 +122,15 @@
             background-color: #d97706;
         }
 
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #16a34a;
+        }
+
         .auth-container {
             max-width: 400px;
             margin: 4rem auto;
@@ -455,6 +464,15 @@
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
                 </div>
 
+                <!-- DORFKASSE BEARBEITEN -->
+                <div style="background-color: var(--bg-color); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; color: var(--gold-color); margin-bottom: 0.5rem;">🏛️ Gesamtes Vermögen des Dorfes (Dorfkasse) anpassen</h3>
+                    <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 0.8rem;">
+                        <input type="number" id="adminTreasuryInput" placeholder="Betrag in €" style="width: 200px; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px; font-size: 1rem;">
+                        <button class="btn btn-gold btn-sm" onclick="updateVillageTreasury()">Dorfkasse aktualisieren</button>
+                    </div>
+                </div>
+
                 <h2>👥 Bürger-Verwaltung (Schichten, Guthaben & Admin-Rechte)</h2>
                 <div style="overflow-x: auto;">
                     <table>
@@ -702,6 +720,16 @@
 
         async function loadAdminData() {
             try {
+                // 1. Dorfkasse laden
+                const treasuryRef = db.collection("economy").doc("treasury");
+                const treasurySnap = await treasuryRef.get();
+                let currentTreasury = 10000;
+                if (treasurySnap.exists) {
+                    currentTreasury = treasurySnap.data().totalAmount || 0;
+                }
+                document.getElementById('adminTreasuryInput').value = currentTreasury;
+
+                // 2. User-Liste laden
                 const snapshot = await db.collection("users").get();
                 const tbody = document.getElementById('adminCitizensTableBody');
                 tbody.innerHTML = '';
@@ -744,6 +772,25 @@
                 console.error("Fehler beim Laden der Admin-Daten:", err);
             }
         }
+
+        // Admin-Funktion: Dorfkasse direkt anpassen
+        window.updateVillageTreasury = async function() {
+            const val = document.getElementById('adminTreasuryInput').value;
+            const newAmount = Number(val);
+
+            if (isNaN(newAmount)) {
+                alert("Bitte gib einen gültigen Betrag ein!");
+                return;
+            }
+
+            try {
+                await db.collection("economy").doc("treasury").set({ totalAmount: newAmount });
+                alert("Vermögen der Dorfkasse erfolgreich aktualisiert!");
+            } catch (err) {
+                console.error("Fehler beim Ändern der Dorfkasse:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
 
         window.updateUserBalance = async function(docId) {
             const inputVal = document.getElementById(`bal_${docId}`).value;
