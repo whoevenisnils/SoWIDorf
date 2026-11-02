@@ -488,33 +488,25 @@
         <div id="adminPage" class="page">
             <section class="card admin-card">
                 <h2 style="color: var(--dc-danger);">👑 Admin-Steuerungszentrale</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, Icons per KI generieren, Schichten anpassen, Accounts löschen und das Lager leeren.</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, eigene Item-Icons hochladen, Schichten anpassen, Accounts löschen und das Lager leeren.</p>
                 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
                     <button class="btn btn-gold" onclick="distributeSalaries()">💰 Gehälter für alle auszahlen</button>
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
                 </div>
 
-                <!-- NEUE BILD-KI (FLUX ENGINE FÜR HOCHWERTIGE ICONS) -->
+                <!-- EIGENES ICON HOCHLADEN -->
                 <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.1rem; color: var(--dc-text-header); margin-bottom: 0.5rem;">🖼️ Flux-Engine KI-Item-Icon Generator</h3>
-                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Wähle ein Item aus und erzeuge gestochen scharfe, detailreiche Icons.</p>
+                    <h3 style="font-size: 1.1rem; color: var(--dc-text-header); margin-bottom: 0.5rem;">🖼️ Eigene Item-Grafik hochladen</h3>
+                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Wähle ein Item und lade ein eigenes Bild (z. B. PNG/JPG) von deinem PC hoch.</p>
                     
                     <div style="display: flex; flex-direction: column; gap: 0.8rem; max-width: 600px;">
                         <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
                             <select id="adminIconItemSelect" style="flex: 1; min-width: 180px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;"></select>
-                            <input type="text" id="adminIconPromptInput" placeholder="z. B. wooden log bundle, game icon style" style="flex: 2; min-width: 220px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                            <input type="file" id="adminImageIconInput" accept="image/*" style="flex: 2; min-width: 220px; padding: 0.4rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                         </div>
                         
-                        <button class="btn btn-sm" onclick="generateIconPreview()">🎨 Icon generieren & Vorschau</button>
-
-                        <div id="iconPreviewContainer" class="hidden" style="margin-top: 0.8rem; display: flex; align-items: center; gap: 1rem; background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border);">
-                            <img id="iconPreviewImg" src="" alt="Vorschau" style="width: 64px; height: 64px; border-radius: 8px; border: 1px solid var(--dc-border); object-fit: cover;">
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 0.4rem; color: var(--dc-text-header);">Vorschau geladen</div>
-                                <button class="btn btn-success btn-sm" onclick="saveGeneratedIcon()">✅ Als permanentes Icon festlegen</button>
-                            </div>
-                        </div>
+                        <button class="btn btn-success btn-sm" onclick="uploadAndSaveItemIcon()">📤 Icon hochladen & speichern</button>
                     </div>
                 </div>
 
@@ -568,7 +560,6 @@
         let isUserAdmin = false;
         let inventoryData = {};
         let deletionTimers = {};
-        let currentGeneratedUrl = '';
 
         const salaries = {
             untere: 630,
@@ -841,45 +832,41 @@
             }
         }
 
-        // 🎨 WECHSEL AUF DIE FLUX-GENERATOR-API FÜR HOCHWERTIGE ICONS
-        window.generateIconPreview = function() {
+        // 📤 EIGENES BILD HOCHLADEN & SPEICHERN
+        window.uploadAndSaveItemIcon = function() {
             const itemId = document.getElementById('adminIconItemSelect').value;
-            const prompt = document.getElementById('adminIconPromptInput').value.trim();
+            const fileInput = document.getElementById('adminImageIconInput');
 
             if (!itemId) {
                 alert("Bitte wähle zuerst ein Item aus!");
                 return;
             }
-            if (!prompt) {
-                alert("Bitte gib ein Prompt für das Bild ein!");
+            if (fileInput.files.length === 0) {
+                alert("Bitte wähle eine Bilddatei aus!");
                 return;
             }
 
-            // Nutzt die professionelle Flux-Engine mit erzwungenem Game-Icon-Stil
-            const enhancedPrompt = encodeURIComponent(prompt + ", video game icon, clean vector style, sharp details, centered on solid dark background, high resolution");
-            currentGeneratedUrl = `https://pollinations.ai/p/${enhancedPrompt}?width=512&height=512&model=flux&nologo=true`;
-            
-            const img = document.getElementById('iconPreviewImg');
-            img.src = currentGeneratedUrl;
-            document.getElementById('iconPreviewContainer').classList.remove('hidden');
-        };
+            const file = fileInput.files[0];
+            const reader = new FileReader();
 
-        window.saveGeneratedIcon = async function() {
-            const itemId = document.getElementById('adminIconItemSelect').value;
-            if (!itemId || !currentGeneratedUrl) return;
+            reader.onload = async function(e) {
+                const base64Image = e.target.result;
 
-            try {
-                await db.collection("inventory").doc(itemId).update({ imageUrl: currentGeneratedUrl });
-                await db.collection("item_icons").doc(itemId).set({ imageUrl: currentGeneratedUrl });
+                try {
+                    // In aktuelles Item und in die permanente Bibliothek speichern
+                    await db.collection("inventory").doc(itemId).update({ imageUrl: base64Image });
+                    await db.collection("item_icons").doc(itemId).set({ imageUrl: base64Image });
 
-                alert("Das Icon wurde erfolgreich gespeichert!");
-                document.getElementById('iconPreviewContainer').classList.add('hidden');
-                document.getElementById('adminIconPromptInput').value = '';
-                loadInventory();
-            } catch (err) {
-                console.error("Fehler beim Speichern des Icons:", err);
-                alert("Fehler: " + err.message);
-            }
+                    alert("Das Icon wurde erfolgreich hochgeladen und gespeichert!");
+                    fileInput.value = '';
+                    loadInventory();
+                } catch (err) {
+                    console.error("Fehler beim Hochladen:", err);
+                    alert("Fehler: " + err.message);
+                }
+            };
+
+            reader.readAsDataURL(file);
         };
 
         window.deleteUserAccount = async function(docId, username) {
