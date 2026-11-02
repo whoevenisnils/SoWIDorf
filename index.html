@@ -10,12 +10,11 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* Discord Onyx Dark Mode Palette */
+        /* Echtes Discord Onyx Dark Theme */
         :root {
-            --dc-bg-primary: #313338;
-            --dc-bg-secondary: #2b2d31;
-            --dc-bg-tertiary: #1e1f22;
-            --dc-bg-floating: #111214;
+            --dc-bg-primary: #111214;
+            --dc-bg-secondary: #1e1f22;
+            --dc-bg-tertiary: #2b2d31;
             --dc-brand: #5865f2;
             --dc-brand-hover: #4752c4;
             --dc-danger: #ed4245;
@@ -26,7 +25,7 @@
             --dc-text-normal: #dbdee1;
             --dc-text-muted: #949ba4;
             --dc-text-header: #f2f3f5;
-            --dc-border: #1f2023;
+            --dc-border: #232428;
         }
 
         * {
@@ -45,7 +44,7 @@
         }
 
         header {
-            background-color: var(--dc-bg-tertiary);
+            background-color: var(--dc-bg-secondary);
             border-bottom: 1px solid var(--dc-border);
             padding: 1rem 2rem;
             display: flex;
@@ -53,7 +52,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
         }
 
         header h1 {
@@ -69,8 +68,8 @@
         }
 
         .nav-btn {
-            background: var(--dc-bg-secondary);
-            border: 1px solid var(--dc-border);
+            background: var(--dc-bg-tertiary);
+            border: 1px solid transparent;
             color: var(--dc-text-muted);
             padding: 0.5rem 1rem;
             border-radius: 8px;
@@ -83,7 +82,6 @@
         .nav-btn.active, .nav-btn:hover {
             background-color: var(--dc-brand);
             color: white;
-            border-color: var(--dc-brand);
         }
 
         .user-info {
@@ -147,7 +145,7 @@
             padding: 2.5rem;
             border-radius: 12px;
             border: 1px solid var(--dc-border);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
             width: 90%;
         }
 
@@ -192,7 +190,7 @@
             padding: 0.8rem;
             border-radius: 8px;
             border: 1px solid transparent;
-            background-color: var(--dc-bg-tertiary);
+            background-color: var(--dc-bg-primary);
             color: var(--dc-text-header);
             font-size: 1rem;
         }
@@ -224,7 +222,7 @@
             border-radius: 12px;
             border: 1px solid var(--dc-border);
             margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .card h2 {
@@ -234,7 +232,7 @@
         }
 
         .admin-card {
-            border-color: var(--dc-danger);
+            border-color: rgba(237, 66, 69, 0.4);
         }
 
         .add-item-form {
@@ -249,7 +247,7 @@
             padding: 0.8rem;
             border-radius: 8px;
             border: 1px solid transparent;
-            background-color: var(--dc-bg-tertiary);
+            background-color: var(--dc-bg-primary);
             color: var(--dc-text-header);
         }
 
@@ -270,12 +268,12 @@
             align-items: center;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
+            transition: transform 0.2s, background-color 0.2s;
         }
 
         .item-bubble:hover {
-            transform: translateY(-4px);
-            background-color: #2f3136;
+            transform: translateY(-3px);
+            background-color: #222428;
         }
 
         .item-header {
@@ -290,7 +288,7 @@
             height: 48px;
             border-radius: 10px;
             object-fit: cover;
-            background-color: var(--dc-bg-tertiary);
+            background-color: var(--dc-bg-primary);
             border: 1px solid var(--dc-border);
         }
 
@@ -329,7 +327,7 @@
         }
 
         .ctrl-btn:hover {
-            background-color: var(--dc-border);
+            background-color: #35383c;
             color: var(--dc-text-header);
         }
 
@@ -497,8 +495,8 @@
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
                 </div>
 
-                <!-- BESSERE KI-BILD-GENERIERUNG (DEEPAI / STARK OPTIMIERT) -->
-                <div style="background-color: var(--dc-bg-tertiary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
+                <!-- BILD-KI GENERATOR -->
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
                     <h3 style="font-size: 1.1rem; color: var(--dc-text-header); margin-bottom: 0.5rem;">🖼️ High-Quality KI-Item-Icon Generator</h3>
                     <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Wähle ein Item aus und lass dir ein sauberes, professionelles Icon generieren.</p>
                     
@@ -521,7 +519,7 @@
                 </div>
 
                 <!-- DORFKASSE BEARBEITEN -->
-                <div style="background-color: var(--dc-bg-tertiary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
                     <h3 style="font-size: 1.1rem; color: var(--dc-gold); margin-bottom: 0.5rem;">🏛️ Gesamtes Vermögen des Dorfes (Dorfkasse) anpassen</h3>
                     <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 0.8rem;">
                         <input type="number" id="adminTreasuryInput" placeholder="Betrag in €" style="width: 200px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px; font-size: 1rem;">
@@ -843,7 +841,6 @@
             }
         }
 
-        // 🎨 BESSERE BILD-KI (Nutzt Pollinations V2 / Flux Engine für gestochen scharfe Ergebnisse)
         window.generateIconPreview = function() {
             const itemId = document.getElementById('adminIconItemSelect').value;
             const prompt = document.getElementById('adminIconPromptInput').value.trim();
@@ -857,8 +854,7 @@
                 return;
             }
 
-            // Verbesserte Engine-URL für hochauflösende, saubere Icons
-            currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ", clean game icon style, high resolution, isolated on solid dark background")}?width=512&height=512&nologo=true`;
+            currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ", clean game icon style, sharp focus, isolated on solid dark background")}?width=512&height=512&nologo=true`;
             
             const img = document.getElementById('iconPreviewImg');
             img.src = currentGeneratedUrl;
