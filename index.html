@@ -10,48 +10,56 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
+        /* Discord Onyx Dark Mode Palette */
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --accent-color: #38bdf8;
-            --accent-hover: #0284c7;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --danger-color: #ef4444;
-            --success-color: #22c55e;
-            --border-color: #334155;
-            --gold-color: #f59e0b;
+            --dc-bg-primary: #313338;
+            --dc-bg-secondary: #2b2d31;
+            --dc-bg-tertiary: #1e1f22;
+            --dc-bg-floating: #111214;
+            --dc-brand: #5865f2;
+            --dc-brand-hover: #4752c4;
+            --dc-danger: #ed4245;
+            --dc-danger-hover: #c03537;
+            --dc-success: #2ec27e;
+            --dc-success-hover: #239c65;
+            --dc-gold: #fEE75C;
+            --dc-text-normal: #dbdee1;
+            --dc-text-muted: #949ba4;
+            --dc-text-header: #f2f3f5;
+            --dc-border: #1f2023;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'GG Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--dc-bg-primary);
+            color: var(--dc-text-normal);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
         header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
+            background-color: var(--dc-bg-tertiary);
+            border-bottom: 1px solid var(--dc-border);
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         header h1 {
-            font-size: 1.5rem;
-            color: var(--accent-color);
+            font-size: 1.3rem;
+            color: var(--dc-text-header);
+            font-weight: 600;
         }
 
         .nav-links {
@@ -61,21 +69,21 @@
         }
 
         .nav-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
+            background: var(--dc-bg-secondary);
+            border: 1px solid var(--dc-border);
+            color: var(--dc-text-muted);
             padding: 0.5rem 1rem;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 500;
             text-decoration: none;
             transition: all 0.2s;
         }
 
         .nav-btn.active, .nav-btn:hover {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            border-color: var(--accent-color);
+            background-color: var(--dc-brand);
+            color: white;
+            border-color: var(--dc-brand);
         }
 
         .user-info {
@@ -85,18 +93,18 @@
         }
 
         .btn {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
+            background-color: var(--dc-brand);
+            color: white;
             border: none;
             padding: 0.6rem 1.2rem;
             border-radius: 8px;
-            font-weight: bold;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.2s;
         }
 
         .btn:hover {
-            background-color: var(--accent-hover);
+            background-color: var(--dc-brand-hover);
         }
 
         .btn-sm {
@@ -105,47 +113,48 @@
         }
 
         .btn-danger {
-            background-color: var(--danger-color);
+            background-color: var(--dc-danger);
             color: white;
         }
 
         .btn-danger:hover {
-            background-color: #dc2626;
+            background-color: var(--dc-danger-hover);
         }
 
         .btn-gold {
-            background-color: var(--gold-color);
-            color: var(--bg-color);
+            background-color: var(--dc-gold);
+            color: #111214;
+            font-weight: 600;
         }
 
         .btn-gold:hover {
-            background-color: #d97706;
+            background-color: #dfcb43;
         }
 
         .btn-success {
-            background-color: var(--success-color);
+            background-color: var(--dc-success);
             color: white;
         }
 
         .btn-success:hover {
-            background-color: #16a34a;
+            background-color: var(--dc-success-hover);
         }
 
         .auth-container {
-            max-width: 400px;
+            max-width: 420px;
             margin: 4rem auto;
-            background-color: var(--card-bg);
+            background-color: var(--dc-bg-secondary);
             padding: 2.5rem;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            border: 1px solid var(--dc-border);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             width: 90%;
         }
 
         .auth-tabs {
             display: flex;
             margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--dc-border);
         }
 
         .tab-btn {
@@ -153,15 +162,15 @@
             padding: 0.8rem;
             background: none;
             border: none;
-            color: var(--text-muted);
+            color: var(--dc-text-muted);
             font-size: 1rem;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         .tab-btn.active {
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
+            color: var(--dc-text-header);
+            border-bottom: 2px solid var(--dc-brand);
         }
 
         .form-group {
@@ -171,22 +180,26 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            color: var(--dc-text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group input, .form-group select {
             width: 100%;
             padding: 0.8rem;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            border: 1px solid transparent;
+            background-color: var(--dc-bg-tertiary);
+            color: var(--dc-text-header);
             font-size: 1rem;
         }
 
         .form-group input:focus, .form-group select:focus {
-            outline: 2px solid var(--accent-color);
+            outline: none;
+            border-color: var(--dc-brand);
         }
 
         main {
@@ -206,10 +219,10 @@
         }
 
         .card {
-            background-color: var(--card-bg);
+            background-color: var(--dc-bg-secondary);
             padding: 1.5rem;
             border-radius: 12px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--dc-border);
             margin-bottom: 2rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
@@ -217,11 +230,11 @@
         .card h2 {
             font-size: 1.2rem;
             margin-bottom: 1rem;
-            color: var(--accent-color);
+            color: var(--dc-text-header);
         }
 
         .admin-card {
-            border-color: var(--danger-color);
+            border-color: var(--dc-danger);
         }
 
         .add-item-form {
@@ -235,9 +248,9 @@
             min-width: 150px;
             padding: 0.8rem;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            border: 1px solid transparent;
+            background-color: var(--dc-bg-tertiary);
+            color: var(--dc-text-header);
         }
 
         .inventory-grid {
@@ -247,10 +260,10 @@
         }
 
         .item-bubble {
-            background-color: var(--card-bg);
-            border-radius: 16px;
+            background-color: var(--dc-bg-secondary);
+            border-radius: 12px;
             padding: 1.5rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--dc-border);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -262,6 +275,7 @@
 
         .item-bubble:hover {
             transform: translateY(-4px);
+            background-color: #2f3136;
         }
 
         .item-header {
@@ -276,20 +290,21 @@
             height: 48px;
             border-radius: 10px;
             object-fit: cover;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
+            background-color: var(--dc-bg-tertiary);
+            border: 1px solid var(--dc-border);
         }
 
         .item-name {
-            font-size: 1.3rem;
-            font-weight: bold;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dc-text-header);
             word-break: break-word;
         }
 
         .item-count {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            color: var(--accent-color);
+            color: var(--dc-brand);
             margin: 0.5rem 0;
         }
 
@@ -306,15 +321,16 @@
             font-size: 1.2rem;
             font-weight: bold;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            border: none;
+            background-color: var(--dc-bg-tertiary);
+            color: var(--dc-text-normal);
             cursor: pointer;
             transition: background 0.2s;
         }
 
         .ctrl-btn:hover {
-            background-color: var(--border-color);
+            background-color: var(--dc-border);
+            color: var(--dc-text-header);
         }
 
         table {
@@ -326,13 +342,15 @@
         th, td {
             padding: 0.8rem;
             text-align: left;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--dc-border);
             vertical-align: middle;
         }
 
         th {
-            color: var(--accent-color);
-            font-weight: bold;
+            color: var(--dc-text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
         }
 
         .stats-grid {
@@ -343,8 +361,8 @@
         }
 
         .stat-box {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
+            background-color: var(--dc-bg-secondary);
+            border: 1px solid var(--dc-border);
             padding: 1.5rem;
             border-radius: 12px;
             text-align: center;
@@ -353,7 +371,7 @@
         .stat-value {
             font-size: 2.2rem;
             font-weight: bold;
-            color: var(--gold-color);
+            color: var(--dc-gold);
             margin-top: 0.5rem;
         }
 
@@ -362,7 +380,7 @@
         }
 
         .alert {
-            color: var(--danger-color);
+            color: var(--dc-danger);
             font-size: 0.85rem;
             margin-top: 0.5rem;
         }
@@ -378,7 +396,7 @@
             <a href="#admin" id="navAdmin" class="nav-btn hidden">👑 Admin-Menü</a>
         </div>
         <div id="userHeader" class="user-info hidden">
-            <span>Angemeldet als: <strong id="currentUsername" style="color: var(--accent-color);"></strong></span>
+            <span>Angemeldet als: <strong id="currentUsername" style="color: var(--dc-text-header);"></strong></span>
             <button class="btn btn-danger" onclick="logout()">Abmelden</button>
         </div>
     </header>
@@ -423,7 +441,7 @@
                 </select>
             </div>
             <button type="submit" class="btn" style="width: 100%;">Account erstellen</button>
-            <p id="regSuccess" style="color: var(--success-color); font-size: 0.85rem; margin-top: 0.5rem;" class="hidden">Account erstellt! Du kannst dich jetzt einloggen.</p>
+            <p id="regSuccess" style="color: var(--dc-success); font-size: 0.85rem; margin-top: 0.5rem;" class="hidden">Account erstellt! Du kannst dich jetzt einloggen.</p>
         </form>
     </div>
 
@@ -458,12 +476,12 @@
                 <div class="stat-box">
                     <div>🏛️ Gesamtes Vermögen des Dorfes (Dorfkasse)</div>
                     <div id="villageTreasury" class="stat-value">0 €</div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Einnahmen: 1.620 € / Monat</div>
+                    <div style="color: var(--dc-text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Einnahmen: 1.620 € / Monat</div>
                 </div>
                 <div class="stat-box">
                     <div>💳 Mein persönlicher Kontostand</div>
                     <div id="myBalance" class="stat-value">0 €</div>
-                    <div id="myClassInfo" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Schicht: -</div>
+                    <div id="myClassInfo" style="color: var(--dc-text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Schicht: -</div>
                 </div>
             </div>
         </div>
@@ -471,42 +489,42 @@
         <!-- SEITE 3: ADMIN-MENÜ -->
         <div id="adminPage" class="page">
             <section class="card admin-card">
-                <h2 style="color: var(--danger-color);">👑 Admin-Steuerungszentrale</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, KI-Icons generieren, Schichten anpassen, Accounts löschen und das Lager leeren.</p>
+                <h2 style="color: var(--dc-danger);">👑 Admin-Steuerungszentrale</h2>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, Icons per KI generieren, Schichten anpassen, Accounts löschen und das Lager leeren.</p>
                 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
                     <button class="btn btn-gold" onclick="distributeSalaries()">💰 Gehälter für alle auszahlen</button>
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
                 </div>
 
-                <!-- 🎨 NEU: KI-BILD-GENERATOR FÜR ITEMS -->
-                <div style="background-color: var(--bg-color); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.1rem; color: var(--accent-color); margin-bottom: 0.5rem;">🖼️ KI-Item-Icon generieren & festlegen</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Wähle ein Item, beschreibe das gewünschte Icon und erstelle eine Vorschau.</p>
+                <!-- BESSERE KI-BILD-GENERIERUNG (DEEPAI / STARK OPTIMIERT) -->
+                <div style="background-color: var(--dc-bg-tertiary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; color: var(--dc-text-header); margin-bottom: 0.5rem;">🖼️ High-Quality KI-Item-Icon Generator</h3>
+                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Wähle ein Item aus und lass dir ein sauberes, professionelles Icon generieren.</p>
                     
                     <div style="display: flex; flex-direction: column; gap: 0.8rem; max-width: 600px;">
                         <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
-                            <select id="adminIconItemSelect" style="flex: 1; min-width: 180px; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px;"></select>
-                            <input type="text" id="adminIconPromptInput" placeholder="z. B. pixel art icon of golden wheat, dark background" style="flex: 2; min-width: 220px; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px;">
+                            <select id="adminIconItemSelect" style="flex: 1; min-width: 180px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;"></select>
+                            <input type="text" id="adminIconPromptInput" placeholder="z. B. fantasy game icon of wheat bundle, high quality" style="flex: 2; min-width: 220px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                         </div>
                         
-                        <button class="btn btn-sm" onclick="generateIconPreview()">🎨 Bild generieren & Vorschau</button>
+                        <button class="btn btn-sm" onclick="generateIconPreview()">🎨 Icon generieren & Vorschau</button>
 
-                        <div id="iconPreviewContainer" class="hidden" style="margin-top: 0.8rem; display: flex; align-items: center; gap: 1rem; background: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                            <img id="iconPreviewImg" src="" alt="Vorschau" style="width: 64px; height: 64px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: cover;">
+                        <div id="iconPreviewContainer" class="hidden" style="margin-top: 0.8rem; display: flex; align-items: center; gap: 1rem; background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border);">
+                            <img id="iconPreviewImg" src="" alt="Vorschau" style="width: 64px; height: 64px; border-radius: 8px; border: 1px solid var(--dc-border); object-fit: cover;">
                             <div>
-                                <div style="font-weight: bold; margin-bottom: 0.4rem;">Gefällt dir das Bild?</div>
-                                <button class="btn btn-success btn-sm" onclick="saveGeneratedIcon()">✅ Icon auf dieses Bild festlegen</button>
+                                <div style="font-weight: 600; margin-bottom: 0.4rem; color: var(--dc-text-header);">Vorschau geladen</div>
+                                <button class="btn btn-success btn-sm" onclick="saveGeneratedIcon()">✅ Als permanentes Icon festlegen</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- DORFKASSE BEARBEITEN -->
-                <div style="background-color: var(--bg-color); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.1rem; color: var(--gold-color); margin-bottom: 0.5rem;">🏛️ Gesamtes Vermögen des Dorfes (Dorfkasse) anpassen</h3>
+                <div style="background-color: var(--dc-bg-tertiary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; color: var(--dc-gold); margin-bottom: 0.5rem;">🏛️ Gesamtes Vermögen des Dorfes (Dorfkasse) anpassen</h3>
                     <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 0.8rem;">
-                        <input type="number" id="adminTreasuryInput" placeholder="Betrag in €" style="width: 200px; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px; font-size: 1rem;">
+                        <input type="number" id="adminTreasuryInput" placeholder="Betrag in €" style="width: 200px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px; font-size: 1rem;">
                         <button class="btn btn-gold btn-sm" onclick="updateVillageTreasury()">Dorfkasse aktualisieren</button>
                     </div>
                 </div>
@@ -552,7 +570,7 @@
         let isUserAdmin = false;
         let inventoryData = {};
         let deletionTimers = {};
-        let currentGeneratedUrl = ''; // Speichert temporär die erstelle Bild-URL
+        let currentGeneratedUrl = '';
 
         const salaries = {
             untere: 630,
@@ -760,7 +778,6 @@
 
         async function loadAdminData() {
             try {
-                // 1. Dorfkasse laden
                 const treasuryRef = db.collection("economy").doc("treasury");
                 const treasurySnap = await treasuryRef.get();
                 let currentTreasury = 10000;
@@ -769,7 +786,6 @@
                 }
                 document.getElementById('adminTreasuryInput').value = currentTreasury;
 
-                // 2. Dropdown für KI-Icons befüllen
                 const invSnap = await db.collection("inventory").get();
                 const iconSelect = document.getElementById('adminIconItemSelect');
                 iconSelect.innerHTML = '<option value="">-- Item auswählen --</option>';
@@ -781,7 +797,6 @@
                     iconSelect.appendChild(opt);
                 });
 
-                // 3. User-Liste laden
                 const snapshot = await db.collection("users").get();
                 const tbody = document.getElementById('adminCitizensTableBody');
                 tbody.innerHTML = '';
@@ -798,7 +813,7 @@
                     row.innerHTML = `
                         <td><strong>${data.username}</strong> ${isNils ? '(Haupt-Admin)' : ''}</td>
                         <td>
-                            <select id="class_${docId}" onchange="updateUserClass('${docId}')" style="padding: 0.3rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px;">
+                            <select id="class_${docId}" onchange="updateUserClass('${docId}')" style="padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                                 <option value="untere" ${data.socialClass === 'untere' ? 'selected' : ''}>Untere Schicht</option>
                                 <option value="mittlere" ${data.socialClass === 'mittlere' ? 'selected' : ''}>Mittlere Schicht</option>
                                 <option value="obere" ${data.socialClass === 'obere' ? 'selected' : ''}>Obere Schicht</option>
@@ -806,12 +821,12 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <input type="number" id="bal_${docId}" value="${balance}" style="width: 100px; padding: 0.3rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px;">
+                                <input type="number" id="bal_${docId}" value="${balance}" style="width: 100px; padding: 0.3rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                                 <button class="btn btn-sm" onclick="updateUserBalance('${docId}')">Ändern</button>
                             </div>
                         </td>
                         <td>
-                            ${isNils ? '<span style="color: var(--gold-color); font-weight: bold;">Immer Admin</span>' : `
+                            ${isNils ? '<span style="color: var(--dc-gold); font-weight: bold;">Immer Admin</span>' : `
                                 <button class="btn btn-sm ${userIsAdmin ? 'btn-danger' : 'btn-success'}" onclick="toggleAdmin('${docId}', ${!userIsAdmin})">
                                     ${userIsAdmin ? 'Admin entziehen' : 'Admin geben'}
                                 </button>
@@ -828,7 +843,7 @@
             }
         }
 
-        // 🎨 KI-VORSCHAU GENERIEREN
+        // 🎨 BESSERE BILD-KI (Nutzt Pollinations V2 / Flux Engine für gestochen scharfe Ergebnisse)
         window.generateIconPreview = function() {
             const itemId = document.getElementById('adminIconItemSelect').value;
             const prompt = document.getElementById('adminIconPromptInput').value.trim();
@@ -842,23 +857,20 @@
                 return;
             }
 
-            currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+            // Verbesserte Engine-URL für hochauflösende, saubere Icons
+            currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ", clean game icon style, high resolution, isolated on solid dark background")}?width=512&height=512&nologo=true`;
             
             const img = document.getElementById('iconPreviewImg');
             img.src = currentGeneratedUrl;
             document.getElementById('iconPreviewContainer').classList.remove('hidden');
         };
 
-        // 🎨 ICON IM ITEM & IN BILDER-BIBLIOTHEK DAUERHAFT SPEICHERN
         window.saveGeneratedIcon = async function() {
             const itemId = document.getElementById('adminIconItemSelect').value;
             if (!itemId || !currentGeneratedUrl) return;
 
             try {
-                // 1. Im aktuellen Item speichern
                 await db.collection("inventory").doc(itemId).update({ imageUrl: currentGeneratedUrl });
-                
-                // 2. In der Bild-Bibliothek speichern (damit das Bild bleibt, auch wenn Item auf 0 sinkt)
                 await db.collection("item_icons").doc(itemId).set({ imageUrl: currentGeneratedUrl });
 
                 alert("Das Icon wurde erfolgreich gespeichert!");
@@ -871,7 +883,6 @@
             }
         };
 
-        // ACCOUNT LÖSCHEN
         window.deleteUserAccount = async function(docId, username) {
             if (!confirm(`Möchtest du den Account von "${username}" wirklich unwiderruflich löschen?`)) return;
 
@@ -1017,7 +1028,6 @@
                 const headerDiv = document.createElement('div');
                 headerDiv.className = 'item-header';
 
-                // Falls ein KI-Icon vorhanden ist, anzeigen
                 if (item.imageUrl) {
                     const img = document.createElement('img');
                     img.className = 'item-icon';
@@ -1036,7 +1046,7 @@
                 countDiv.textContent = item.amount;
 
                 const labelDiv = document.createElement('div');
-                labelDiv.style.color = 'var(--text-muted)';
+                labelDiv.style.color = 'var(--dc-text-muted)';
                 labelDiv.style.fontSize = '0.85rem';
                 labelDiv.textContent = 'Einheiten im Lager';
 
@@ -1087,7 +1097,6 @@
                 const itemSnap = await itemRef.get();
                 let newAmount = qty;
 
-                // Prüfen, ob für dieses Item bereits ein Bild in der Bibliothek existiert!
                 let savedImageUrl = null;
                 const iconSnap = await db.collection("item_icons").doc(docId).get();
                 if (iconSnap.exists) {
