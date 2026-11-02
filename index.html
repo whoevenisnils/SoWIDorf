@@ -654,6 +654,7 @@
         let isUserAdmin = false;
         let inventoryData = {};
         let deletionTimers = {};
+        let accountListener = null; // Für die Echtzeit-Überprüfung
 
         const salaries = {
             untere: 630,
@@ -673,6 +674,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
+                verifyAccountStillExists();
                 showDashboard();
             } else {
                 showAuth();
@@ -680,6 +682,21 @@
         });
 
         window.addEventListener('hashchange', handleRoute);
+
+        // Überprüft permanent in Echtzeit, ob der eigene Account gelöscht wurde
+        function verifyAccountStillExists() {
+            if (!currentUser) return;
+            
+            // Falls schon ein Listener aktiv ist, abbrechen
+            if (accountListener) accountListener();
+
+            accountListener = db.collection("users").doc(currentUser.toLowerCase()).onSnapshot((doc) => {
+                if (!doc.exists) {
+                    alert("Dein Account wurde von einem Administrator gelöscht!");
+                    logout();
+                }
+            });
+        }
 
         async function checkAdminPermission() {
             if (!currentUser) return false;
@@ -800,6 +817,7 @@
                     currentUser = userSnap.data().username;
                     sessionStorage.setItem('dorf_current_user', currentUser);
                     document.getElementById('loginError').classList.add('hidden');
+                    verifyAccountStillExists();
                     showDashboard();
                 } else {
                     document.getElementById('loginError').classList.remove('hidden');
@@ -810,6 +828,10 @@
         };
 
         window.logout = function() {
+            if (accountListener) {
+                accountListener();
+                accountListener = null;
+            }
             sessionStorage.removeItem('dorf_current_user');
             currentUser = null;
             window.location.hash = '';
@@ -1162,7 +1184,7 @@
                 alert(`Gehälter wurden ausgezahlt!\n\n- Gesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} €\n- Monatliches Dorfeinkommen: +1.620 €\n- Neue Dorfkasse: ${newTreasury.toLocaleString('de-DE')} €`);
                 
                 loadAdminData();
-            } catch (err) {
+            } catch (err)  {
                 console.error("Fehler beim Auszahlen:", err);
                 alert("Fehler: " + err.message);
             }
