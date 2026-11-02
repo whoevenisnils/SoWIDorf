@@ -99,6 +99,11 @@
             background-color: var(--accent-hover);
         }
 
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+
         .btn-danger {
             background-color: var(--danger-color);
             color: white;
@@ -288,6 +293,23 @@
             background-color: var(--border-color);
         }
 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -383,7 +405,7 @@
     <!-- MAIN DASHBOARD -->
     <main id="dashboardSection" class="hidden">
         
-        <!-- SEITE 1: LAGER (Statisch ohne Live-Sync) -->
+        <!-- SEITE 1: LAGER -->
         <div id="inventoryPage" class="page">
             <section class="card">
                 <h2>📦 Neues Gut einlagern / Bestände erhöhen</h2>
@@ -399,7 +421,7 @@
             <section>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h2>Aktueller Lagerbestand</h2>
-                    <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="loadInventory()">🔄 Aktualisieren</button>
+                    <button class="btn btn-sm" onclick="loadInventory()">🔄 Aktualisieren</button>
                 </div>
                 <div id="inventoryGrid" class="inventory-grid"></div>
             </section>
@@ -419,24 +441,34 @@
                     <div id="myClassInfo" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Schicht: -</div>
                 </div>
             </div>
-
-            <section class="card">
-                <h2>ℹ️ Hinweis zur Transparenz</h2>
-                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">
-                    Aus Datenschutzgründen sieht jeder Bürger der Gemeinde ausschließlich seinen eigenen Kontostand sowie das aktuelle Gesamtvermögen der Dorfkasse.
-                </p>
-            </section>
         </div>
 
         <!-- SEITE 3: ADMIN-MENÜ (Nur für Nils) -->
         <div id="adminPage" class="page">
             <section class="card admin-card">
                 <h2 style="color: var(--danger-color);">👑 Admin-Steuerungszentrale</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Als Bürgermeister (Nils) kannst du hier administrative Aktionen ausführen.</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Als Bürgermeister (Nils) kannst du hier Finanzen verwalten und das Lager leeren.</p>
                 
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
                     <button class="btn btn-gold" onclick="distributeSalaries()">💰 Gehälter für alle auszahlen</button>
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
+                </div>
+
+                <h2>👥 Bürger-Konten & Schichten verwalten</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bürger</th>
+                                <th>Schicht</th>
+                                <th>Aktueller Kontostand</th>
+                                <th>Guthaben anpassen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminCitizensTableBody">
+                            <!-- Dynamische Admin-Tabelle -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </div>
@@ -493,10 +525,11 @@
             } else if (hash === '#admin' && currentUser.toLowerCase() === 'nils') {
                 document.getElementById('adminPage').classList.add('active');
                 document.getElementById('navAdmin').classList.add('active');
+                loadAdminData();
             } else {
                 document.getElementById('inventoryPage').classList.add('active');
                 document.getElementById('navInventory').classList.add('active');
-                loadInventory(); // Statisch laden
+                loadInventory();
             }
         }
 
@@ -536,7 +569,6 @@
                     return;
                 }
 
-                // Account anlegen mit Startguthaben 0 €
                 await userRef.set({ 
                     username: u, 
                     password: p, 
@@ -615,13 +647,12 @@
             }
         }
 
-        // Bank-Daten laden (Nur eigenes Geld & Gesamtes Vermögen)
+        // Bank-Daten für normalen User laden
         async function loadBankData() {
             try {
-                // 1. Dorfkasse laden
                 const treasuryRef = db.collection("economy").doc("treasury");
                 const treasurySnap = await treasuryRef.get();
-                let villageBalance = 10000; // Startwert der Dorfkasse
+                let villageBalance = 10000;
 
                 if (treasurySnap.exists) {
                     villageBalance = treasurySnap.data().totalAmount || 0;
@@ -630,7 +661,6 @@
                 }
                 document.getElementById('villageTreasury').innerText = villageBalance.toLocaleString('de-DE') + ' €';
 
-                // 2. Eigenen Account laden
                 const userRef = db.collection("users").doc(currentUser.toLowerCase());
                 const userSnap = await userRef.get();
 
@@ -650,7 +680,62 @@
             }
         }
 
-        // Admin-Funktion: Gehälter auszahlen (zieht Geld aus der Dorfkasse und verteilt es auf User-Konten)
+        // Admin-Daten laden (Tabelle mit allen Usern und Kontostand-Änderung)
+        async function loadAdminData() {
+            try {
+                const snapshot = await db.collection("users").get();
+                const tbody = document.getElementById('adminCitizensTableBody');
+                tbody.innerHTML = '';
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const docId = doc.id;
+                    const row = document.createElement('tr');
+                    
+                    let className = 'Mittlere Schicht';
+                    if (data.socialClass === 'untere') className = 'Untere Schicht';
+                    if (data.socialClass === 'obere') className = 'Obere Schicht';
+
+                    const balance = data.balance || 0;
+
+                    row.innerHTML = `
+                        <td><strong>${data.username}</strong></td>
+                        <td>${className}</td>
+                        <td>${balance.toLocaleString('de-DE')} €</td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <input type="number" id="bal_${docId}" value="${balance}" style="width: 120px; padding: 0.4rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 6px;">
+                                <button class="btn btn-sm" onclick="updateUserBalance('${docId}')">Ändern</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Fehler beim Laden der Admin-Daten:", err);
+            }
+        }
+
+        // Kontostand eines spezifischen Users als Admin ändern
+        window.updateUserBalance = async function(docId) {
+            const inputVal = document.getElementById(`bal_${docId}`).value;
+            const newBalance = Number(inputVal);
+
+            if (isNaN(newBalance)) {
+                alert("Bitte gib eine gültige Zahl ein!");
+                return;
+            }
+
+            try {
+                await db.collection("users").doc(docId).update({ balance: newBalance });
+                alert("Kontostand erfolgreich aktualisiert!");
+                loadAdminData();
+            } catch (err) {
+                console.error("Fehler beim Aktualisieren des Kontostands:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
+
         window.distributeSalaries = async function() {
             try {
                 const usersSnap = await db.collection("users").get();
@@ -674,7 +759,6 @@
                     batch.update(doc.ref, { balance: newBalance });
                 });
 
-                // Neue Dorfkasse berechnen (Dorfeinkommen + 1.620 € abzüglich Gehälter)
                 const newTreasury = currentTreasury + 1620 - totalPayout;
                 batch.set(treasuryRef, { totalAmount: newTreasury });
 
@@ -682,14 +766,13 @@
 
                 alert(`Gehälter wurden ausgezahlt!\n\n- Gesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} €\n- Monatliches Dorfeinkommen: +1.620 €\n- Neue Dorfkasse: ${newTreasury.toLocaleString('de-DE')} €`);
                 
-                loadBankData();
+                loadAdminData();
             } catch (err) {
                 console.error("Fehler beim Auszahlen:", err);
                 alert("Fehler: " + err.message);
             }
         };
 
-        // STATISCHES LAGER (Kein Live-Sync / onSnapshot mehr)
         async function loadInventory() {
             try {
                 const snapshot = await db.collection("inventory").get();
@@ -791,7 +874,7 @@
 
                 nameInput.value = '';
                 qtyInput.value = '1';
-                loadInventory(); // Nach dem Hinzufügen neu laden
+                loadInventory();
             } catch (err) {
                 console.error("Fehler beim Einlagern:", err);
             }
@@ -802,7 +885,6 @@
             const currentAmount = inventoryData[docId]?.amount || 0;
             const newAmount = currentAmount + change;
 
-            // Lokales UI sofort aktualisieren
             if (newAmount >= 0) {
                 inventoryData[docId].amount = newAmount;
                 renderInventory();
