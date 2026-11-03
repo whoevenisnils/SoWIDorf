@@ -65,6 +65,7 @@
             display: flex;
             gap: 0.8rem;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
@@ -414,7 +415,12 @@
             <a href="#inventory" id="navInventory" class="nav-btn">📦 Lager</a>
             <a href="#bank" id="navBank" class="nav-btn">🏛️ Dorf-Bank</a>
             <a href="#info" id="navInfo" class="nav-btn">📜 Infos & Regeln</a>
-            <a href="#admin" id="navAdmin" class="nav-btn hidden">👑 Admin-Menü</a>
+            <!-- Geheimer Tierstall (Standardmäßig unsichtbar, durch 3x Klick auf Admin freischaltbar für Admins) -->
+            <a href="#stall" id="navStall" class="nav-btn hidden">🐄 Tierstall</a>
+            <!-- Admin-Only Seiten -->
+            <a href="#field" id="navField" class="nav-btn admin-only hidden">🌱 Feld</a>
+            <a href="#map" id="navMap" class="nav-btn admin-only hidden">🗺️ Dorf-Map</a>
+            <a href="#admin" id="navAdmin" class="nav-btn hidden" onclick="handleAdminNavClick(event)">👑 Admin-Menü</a>
         </div>
         <div id="userHeader" class="user-info hidden">
             <span>Angemeldet als: <strong id="currentUsername" style="color: var(--dc-text-header);"></strong></span>
@@ -550,15 +556,77 @@
             </section>
         </div>
 
-        <!-- SEITE 4: ADMIN-MENÜ -->
+        <!-- SEITE 4: TIERSTALL (ADMIN & 3-KLICK FREISCHALTBAR) -->
+        <div id="stallPage" class="page">
+            <section class="card">
+                <h2>🐄 Tierstall - Tiere hinzufügen</h2>
+                <form class="add-item-form" onsubmit="handleAddAnimal(event)">
+                    <input type="text" id="animalNameInput" placeholder="Tierart (z. B. Schwein, Kuh, Huhn...)" required autocomplete="off">
+                    <input type="number" id="animalQtyInput" placeholder="Anzahl" min="1" value="1" required>
+                    <button type="submit" class="btn btn-success">Tier hinzufügen</button>
+                </form>
+            </section>
+
+            <section>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2>Aktuelle Tiere im Stall</h2>
+                    <button class="btn btn-sm" onclick="loadStallData()">🔄 Aktualisieren</button>
+                </div>
+                <div id="stallGrid" class="inventory-grid"></div>
+            </section>
+        </div>
+
+        <!-- SEITE 5: FELD (ADMIN ONLY) -->
+        <div id="fieldPage" class="page">
+            <section class="card">
+                <h2>🌱 Admin-Feldverwaltung</h2>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du das Admin-Feld verwalten (z. B. Anbau, Ernte und Status).</p>
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 2rem; border-radius: 10px; text-align: center;">
+                    <p style="font-size: 1.1rem; color: var(--dc-text-header); margin-bottom: 1rem;">🌾 Aktueller Feld-Status: Bereit für die Bewirtschaftung</p>
+                    <button class="btn btn-success" onclick="alert('Feld-Aktion ausgeführt!')">🌱 Feld bestellen / Ernten</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- SEITE 6: DORF-MAP (ADMIN ONLY) -->
+        <div id="mapPage" class="page">
+            <section class="card">
+                <h2>🗺️ Admin Dorf-Map</h2>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier wird die interaktive Dorfkarte angezeigt.</p>
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 3rem; border-radius: 10px; text-align: center; min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
+                    <p style="font-size: 1.2rem; color: var(--dc-text-header); font-weight: bold;">Hier kommt deine Dorf-Map rein</p>
+                    <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-top: 0.5rem;">(Du kannst mir deine Map später geben, dann binde ich sie hier passgenau ein!)</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- SEITE 7: ADMIN-MENÜ -->
         <div id="adminPage" class="page">
             <section class="card admin-card">
                 <h2 style="color: var(--dc-danger);">👑 Admin-Steuerungszentrale</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, eigene Item-Icons hochladen, Berufe & Schichten anpassen, Accounts löschen und das Lager leeren.</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du Finanzen verwalten, eigene Item-Icons hochladen, Berufe & Schichten anpassen, Accounts löschen, Einstellungen anpassen und das Lager leeren.</p>
                 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
                     <button class="btn btn-gold" onclick="distributeSalaries()">💰 Gehälter für alle auszahlen</button>
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
+                </div>
+
+                <!-- FLEISCH-AUSBEUTE EINSTELLUNGEN -->
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; color: var(--dc-brand); margin-bottom: 0.5rem;">🍖 Fleisch-Ausbeute beim Schlachten einstellen</h3>
+                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Lege fest, wie viel Fleisch ein geschlachtetes Tier zufällig abgibt (Min und Max).</p>
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--dc-text-muted); display: block;">Minimum Fleisch:</label>
+                            <input type="number" id="adminMeatMin" min="1" value="2" style="width: 100px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--dc-text-muted); display: block;">Maximum Fleisch:</label>
+                            <input type="number" id="adminMeatMax" min="1" value="10" style="width: 100px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                        </div>
+                        <button class="btn btn-success btn-sm" style="align-self: flex-end;" onclick="saveMeatSettings()">💾 Fleisch-Werte speichern</button>
+                    </div>
                 </div>
 
                 <!-- EIGENES ICON HOCHLADEN -->
@@ -650,29 +718,24 @@
             }
         }
 
-        // 🧠 Hilfsfunktion: Korrigiert Tippfehler und normalisiert Item-Namen (z.B. Apel -> apfel)
         function normalizeItemName(inputName) {
             if (!inputName) return "";
             let clean = inputName.trim().toLowerCase();
-            
-            // Umlaute und Sonderzeichen anpassen
             clean = clean.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
-            
-            // Einfache gängige Vertipper-Korrekturen (Beispiel Apfel / Apel)
-            if (clean === "apel" || clean === "appfel" || clean === "apffl") {
-                return "apfel";
-            }
-            
-            // Doppelte Konsonanten/Buchstaben glätten (z.B. "holzss" -> "holz", "weizzzen" -> "weizen")
-            clean = clean.replace(/([b-df-hj-np-tv-z])\1+/g, '$1$1'); // max 2 behalten
-            
+            if (clean === "apel" || clean === "appfel" || clean === "apffl") return "apfel";
+            clean = clean.replace(/([b-df-hj-np-tv-z])\1+/g, '$1$1');
             return clean;
         }
 
         let currentUser = sessionStorage.getItem('dorf_current_user') || null;
         let isUserAdmin = false;
         let inventoryData = {};
+        let stallData = {};
         let accountListener = null;
+
+        // 3-Klick-Zähler für das Admin-Menü (zum Freischalten des Stalls)
+        let adminClickCount = 0;
+        let adminClickTimer = null;
 
         const salaries = {
             untere: 630,
@@ -703,7 +766,6 @@
 
         function verifyAccountStillExists() {
             if (!currentUser) return;
-            
             if (accountListener) accountListener();
 
             accountListener = db.collection("users").doc(currentUser.toLowerCase()).onSnapshot((doc) => {
@@ -729,6 +791,30 @@
             return false;
         }
 
+        // Funktion für die 3 Klicks auf das Admin-Menü
+        window.handleAdminNavClick = function(e) {
+            if (!isUserAdmin) return;
+            
+            adminClickCount++;
+            if (adminClickTimer) clearTimeout(adminClickTimer);
+
+            if (adminClickCount >= 3) {
+                adminClickCount = 0;
+                const stallBtn = document.getElementById('navStall');
+                stallBtn.classList.toggle('hidden');
+                
+                if (!stallBtn.classList.contains('hidden')) {
+                    alert("🔓 Tierstall wurde freigeschaltet!");
+                } else {
+                    alert("🔒 Tierstall wurde wieder versteckt.");
+                }
+            }
+
+            adminClickTimer = setTimeout(() => {
+                adminClickCount = 0;
+            }, 1000);
+        };
+
         async function handleRoute() {
             if (!currentUser) return;
             
@@ -746,6 +832,16 @@
                 document.getElementById('infoPage').classList.add('active');
                 document.getElementById('navInfo').classList.add('active');
                 loadInfoData();
+            } else if (hash === '#stall' && isUserAdmin) {
+                document.getElementById('stallPage').classList.add('active');
+                document.getElementById('navStall').classList.add('active');
+                loadStallData();
+            } else if (hash === '#field' && isUserAdmin) {
+                document.getElementById('fieldPage').classList.add('active');
+                document.getElementById('navField').classList.add('active');
+            } else if (hash === '#map' && isUserAdmin) {
+                document.getElementById('mapPage').classList.add('active');
+                document.getElementById('navMap').classList.add('active');
             } else if (hash === '#admin' && isUserAdmin) {
                 document.getElementById('adminPage').classList.add('active');
                 document.getElementById('navAdmin').classList.add('active');
@@ -873,8 +969,11 @@
             
             if (isUserAdmin) {
                 navAdmin.classList.remove('hidden');
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             } else {
                 navAdmin.classList.add('hidden');
+                document.getElementById('navStall').classList.add('hidden');
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
             }
 
             if (!window.location.hash || window.location.hash === '#') {
@@ -973,6 +1072,14 @@
                 }
                 document.getElementById('adminTreasuryInput').value = currentTreasury;
 
+                // Fleisch Einstellungen laden
+                const settingsRef = db.collection("economy").doc("settings");
+                const settingsSnap = await settingsRef.get();
+                if (settingsSnap.exists) {
+                    document.getElementById('adminMeatMin').value = settingsSnap.data().meatMin ?? 2;
+                    document.getElementById('adminMeatMax').value = settingsSnap.data().meatMax ?? 10;
+                }
+
                 const invSnap = await db.collection("inventory").get();
                 const iconSelect = document.getElementById('adminIconItemSelect');
                 iconSelect.innerHTML = '<option value="">-- Item auswählen --</option>';
@@ -1040,6 +1147,25 @@
                 console.error("Fehler beim Laden der Admin-Daten:", err);
             }
         }
+
+        window.saveMeatSettings = async function() {
+            const min = parseInt(document.getElementById('adminMeatMin').value) || 2;
+            const max = parseInt(document.getElementById('adminMeatMax').value) || 10;
+
+            if (min > max) {
+                alert("Das Minimum darf nicht größer sein als das Maximum!");
+                return;
+            }
+
+            try {
+                await db.collection("economy").doc("settings").set({ meatMin: min, meatMax: max }, { merge: true });
+                await sendDiscordWebhook("Einstellungen aktualisiert", `Fleisch-Ausbeute beim Schlachten angepasst: **${min} - ${max} Einheiten**`, 16776960);
+                alert("Fleisch-Werte erfolgreich gespeichert!");
+            } catch (err) {
+                console.error("Fehler beim Speichern der Fleisch-Werte:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
 
         window.uploadAndSaveItemIcon = function() {
             const itemId = document.getElementById('adminIconItemSelect').value;
@@ -1206,6 +1332,170 @@
             }
         };
 
+        // --- TIERSTALL LOGIK ---
+        async function loadStallData() {
+            try {
+                const snapshot = await db.collection("stall").get();
+                stallData = {};
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data && Number(data.amount) >= 0) {
+                        stallData[doc.id] = data;
+                    }
+                });
+                renderStall();
+            } catch (err) {
+                console.error("Fehler beim Laden des Stalls:", err);
+            }
+        }
+
+        function renderStall() {
+            const grid = document.getElementById('stallGrid');
+            grid.innerHTML = '';
+
+            Object.keys(stallData).forEach((id) => {
+                const animal = stallData[id];
+                if (!animal || Number(animal.amount) < 0) return;
+
+                const bubble = document.createElement('div');
+                bubble.className = 'item-bubble';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'item-header';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'item-name';
+                nameDiv.textContent = '🐄 ' + animal.name;
+                headerDiv.appendChild(nameDiv);
+
+                const countDiv = document.createElement('div');
+                countDiv.className = 'item-count';
+                countDiv.textContent = animal.amount;
+
+                const labelDiv = document.createElement('div');
+                labelDiv.style.color = 'var(--dc-text-muted)';
+                labelDiv.style.fontSize = '0.85rem';
+                labelDiv.textContent = 'Tiere im Stall';
+
+                const controls = document.createElement('div');
+                controls.className = 'controls';
+
+                const btnSlaughter = document.createElement('button');
+                btnSlaughter.className = 'btn btn-danger';
+                btnSlaughter.textContent = '🍖 Schlachten (Gibt Fleisch)';
+                btnSlaughter.onclick = () => slaughterAnimal(id, animal.name);
+
+                controls.appendChild(btnSlaughter);
+
+                bubble.appendChild(headerDiv);
+                bubble.appendChild(countDiv);
+                bubble.appendChild(labelDiv);
+                bubble.appendChild(controls);
+
+                grid.appendChild(bubble);
+            });
+        }
+
+        window.handleAddAnimal = async function(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('animalNameInput');
+            const qtyInput = document.getElementById('animalQtyInput');
+
+            const rawName = nameInput.value.trim();
+            const qty = parseInt(qtyInput.value) || 1;
+
+            if (!rawName) return;
+
+            const normalizedId = normalizeItemName(rawName);
+            const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+            const animalRef = db.collection("stall").doc(normalizedId);
+
+            try {
+                const snap = await animalRef.get();
+                let newAmount = qty;
+
+                if (snap.exists) {
+                    newAmount = (snap.data().amount || 0) + qty;
+                }
+
+                await animalRef.set({ name: formattedName, amount: newAmount });
+                await sendDiscordWebhook("Stall: Tier hinzugefügt", `**${qty}x ${formattedName}** in den Stall gestellt.\nAktueller Bestand: **${newAmount}**`);
+
+                nameInput.value = '';
+                document.getElementById('animalQtyInput').value = '1';
+                loadStallData();
+            } catch (err) {
+                console.error("Fehler beim Hinzufügen des Tieres:", err);
+            }
+        };
+
+        window.slaughterAnimal = async function(docId, animalName) {
+            const animalRef = db.collection("stall").doc(docId);
+            const currentAmount = stallData[docId]?.amount || 0;
+            const newAmount = currentAmount - 1;
+
+            try {
+                if (newAmount < 0) {
+                    await animalRef.delete();
+                    delete stallData[docId];
+                    renderStall();
+                    alert(`Keine ${animalName} mehr im Stall zum Schlachten!`);
+                    return;
+                }
+
+                // Einstellungen für Fleisch aus Firebase holen (Default: min 2, max 10)
+                let meatMin = 2;
+                let meatMax = 10;
+                try {
+                    const settingsSnap = await db.collection("economy").doc("settings").get();
+                    if (settingsSnap.exists) {
+                        meatMin = settingsSnap.data().meatMin ?? 2;
+                        meatMax = settingsSnap.data().meatMax ?? 10;
+                    }
+                } catch (e) {
+                    console.error("Konnte Fleisch-Einstellungen nicht laden, nutze Standardwerte", e);
+                }
+
+                // Zufällige Fleischmenge zwischen min und max generieren
+                const meatGenerated = Math.floor(Math.random() * (meatMax - meatMin + 1)) + meatMin;
+
+                stallData[docId].amount = newAmount;
+                renderStall();
+                await animalRef.update({ amount: newAmount });
+
+                // Fleisch automatisch ins Haupt-Lager buchen
+                const meatName = animalName + "fleisch";
+                const meatId = normalizeItemName(meatName);
+                const formattedMeatName = meatName.charAt(0).toUpperCase() + meatName.slice(1);
+                const inventoryRef = db.collection("inventory").doc(meatId);
+
+                const invSnap = await inventoryRef.get();
+                let meatAmount = meatGenerated;
+                let savedIcon = null;
+
+                const iconSnap = await db.collection("item_icons").doc(meatId).get();
+                if (iconSnap.exists) savedIcon = iconSnap.data().imageUrl;
+
+                if (invSnap.exists) {
+                    meatAmount = (invSnap.data().amount || 0) + meatGenerated;
+                    savedIcon = invSnap.data().imageUrl || savedIcon;
+                }
+
+                const meatData = { name: formattedMeatName, amount: meatAmount };
+                if (savedIcon) meatData.imageUrl = savedIcon;
+
+                await inventoryRef.set(meatData);
+
+                await sendDiscordWebhook("Stall: Tier geschlachtet", `Ein **${animalName}** wurde geschlachtet! 🍖\n+${meatGenerated} Einheiten **${formattedMeatName}** wurden ins Lager gebucht.`);
+                alert(`Du hast ein ${animalName} geschlachtet! +${meatGenerated}x ${formattedMeatName} wurden ins Lager gelegt.`);
+
+                loadStallData();
+            } catch (err) {
+                console.error("Fehler beim Schlachten:", err);
+            }
+        };
+
+        // --- LAGER LOGIK ---
         async function loadInventory() {
             try {
                 const snapshot = await db.collection("inventory").get();
@@ -1323,9 +1613,8 @@
 
             if (!rawName) return;
 
-            // Name normalisieren, damit Tippfehler (Apel/Apfel) zusammengefasst werden
             const normalizedId = normalizeItemName(rawName);
-            const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1); // Schöner Name fürs UI
+            const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
             const itemRef = db.collection("inventory").doc(normalizedId);
 
             try {
@@ -1426,8 +1715,3 @@
     </script>
 </body>
 </html>
-
-            
-
-            
-
