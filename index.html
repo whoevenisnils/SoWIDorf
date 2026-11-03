@@ -415,11 +415,10 @@
             <a href="#inventory" id="navInventory" class="nav-btn">📦 Lager</a>
             <a href="#bank" id="navBank" class="nav-btn">🏛️ Dorf-Bank</a>
             <a href="#info" id="navInfo" class="nav-btn">📜 Infos & Regeln</a>
-            <!-- Geheimer Tierstall (Standardmäßig unsichtbar, durch 3x Klick auf Admin freischaltbar für Admins) -->
-            <a href="#stall" id="navStall" class="nav-btn hidden">🐄 Tierstall</a>
-            <!-- Admin-Only Seiten -->
-            <a href="#field" id="navField" class="nav-btn admin-only hidden">🌱 Feld</a>
-            <a href="#map" id="navMap" class="nav-btn admin-only hidden">🗺️ Dorf-Map</a>
+            <!-- Durch 3 Klicks auf das Admin-Menü freischaltbare Admin-Seiten -->
+            <a href="#stall" id="navStall" class="nav-btn admin-hidden hidden">🐄 Tierstall</a>
+            <a href="#field" id="navField" class="nav-btn admin-hidden hidden">🌱 Feld</a>
+            <a href="#map" id="navMap" class="nav-btn admin-hidden hidden">🗺️ Dorf-Map</a>
             <a href="#admin" id="navAdmin" class="nav-btn hidden" onclick="handleAdminNavClick(event)">👑 Admin-Menü</a>
         </div>
         <div id="userHeader" class="user-info hidden">
@@ -576,27 +575,22 @@
             </section>
         </div>
 
-        <!-- SEITE 5: FELD (ADMIN ONLY) -->
+        <!-- SEITE 5: FELD (ADMIN & 3-KLICK FREISCHALTBAR) -->
         <div id="fieldPage" class="page">
             <section class="card">
-                <h2>🌱 Admin-Feldverwaltung</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier kannst du das Admin-Feld verwalten (z. B. Anbau, Ernte und Status).</p>
-                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 2rem; border-radius: 10px; text-align: center;">
-                    <p style="font-size: 1.1rem; color: var(--dc-text-header); margin-bottom: 1rem;">🌾 Aktueller Feld-Status: Bereit für die Bewirtschaftung</p>
-                    <button class="btn btn-success" onclick="alert('Feld-Aktion ausgeführt!')">🌱 Feld bestellen / Ernten</button>
-                </div>
+                <h2>🌱 Admin-Feldverwaltung (Anbau-Slots)</h2>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Wähle Saatgut aus dem Lager aus und pflanze es auf den Feldern an.</p>
+                <div id="fieldSlotsGrid" class="inventory-grid"></div>
             </section>
         </div>
 
-        <!-- SEITE 6: DORF-MAP (ADMIN ONLY) -->
+        <!-- SEITE 6: DORF-MAP (ADMIN & 3-KLICK FREISCHALTBAR) -->
         <div id="mapPage" class="page">
             <section class="card">
                 <h2>🗺️ Admin Dorf-Map</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Hier wird die interaktive Dorfkarte angezeigt.</p>
                 <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 3rem; border-radius: 10px; text-align: center; min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
-                    <p style="font-size: 1.2rem; color: var(--dc-text-header); font-weight: bold;">Hier kommt deine Dorf-Map rein</p>
-                    <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-top: 0.5rem;">(Du kannst mir deine Map später geben, dann binde ich sie hier passgenau ein!)</p>
+                    <p style="font-size: 1.2rem; color: var(--dc-text-header); font-weight: bold;">Interaktive Dorf-Map</p>
                 </div>
             </section>
         </div>
@@ -731,9 +725,10 @@
         let isUserAdmin = false;
         let inventoryData = {};
         let stallData = {};
+        let fieldData = {};
         let accountListener = null;
 
-        // 3-Klick-Zähler für das Admin-Menü (zum Freischalten des Stalls)
+        // 3-Klick-Zähler für das Admin-Menü (zum Freischalten der Admin-Seiten)
         let adminClickCount = 0;
         let adminClickTimer = null;
 
@@ -791,7 +786,7 @@
             return false;
         }
 
-        // Funktion für die 3 Klicks auf das Admin-Menü
+        // Funktion für die 3 Klicks auf das Admin-Menü (schaltet Stall, Feld & Map für Admins frei)
         window.handleAdminNavClick = function(e) {
             if (!isUserAdmin) return;
             
@@ -800,13 +795,25 @@
 
             if (adminClickCount >= 3) {
                 adminClickCount = 0;
-                const stallBtn = document.getElementById('navStall');
-                stallBtn.classList.toggle('hidden');
-                
-                if (!stallBtn.classList.contains('hidden')) {
-                    alert("🔓 Tierstall wurde freigeschaltet!");
+                const adminHiddenElements = document.querySelectorAll('.admin-hidden');
+                let isCurrentlyHidden = true;
+
+                adminHiddenElements.forEach(el => {
+                    if (!el.classList.contains('hidden')) isCurrentlyHidden = false;
+                });
+
+                adminHiddenElements.forEach(el => {
+                    if (isCurrentlyHidden) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                });
+
+                if (isCurrentlyHidden) {
+                    alert("🔓 Admin-Zusatzbereiche (Stall, Feld, Map) wurden freigeschaltet!");
                 } else {
-                    alert("🔒 Tierstall wurde wieder versteckt.");
+                    alert("🔒 Admin-Zusatzbereiche wurden wieder versteckt.");
                 }
             }
 
@@ -839,6 +846,7 @@
             } else if (hash === '#field' && isUserAdmin) {
                 document.getElementById('fieldPage').classList.add('active');
                 document.getElementById('navField').classList.add('active');
+                loadFieldData();
             } else if (hash === '#map' && isUserAdmin) {
                 document.getElementById('mapPage').classList.add('active');
                 document.getElementById('navMap').classList.add('active');
@@ -969,11 +977,9 @@
             
             if (isUserAdmin) {
                 navAdmin.classList.remove('hidden');
-                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             } else {
                 navAdmin.classList.add('hidden');
-                document.getElementById('navStall').classList.add('hidden');
-                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.admin-hidden').forEach(el => el.classList.add('hidden'));
             }
 
             if (!window.location.hash || window.location.hash === '#') {
@@ -1332,6 +1338,129 @@
             }
         };
 
+        // --- FELD-VERWALTUNG (ANBAU-SLOTS) ---
+        async function loadFieldData() {
+            try {
+                // Lager-Daten laden für die Saatgut-Auswahl
+                const invSnap = await db.collection("inventory").get();
+                inventoryData = {};
+                invSnap.forEach(doc => {
+                    inventoryData[doc.id] = doc.data();
+                });
+
+                // Felder laden (Wir simulieren standardmäßig 6 Anbau-Slots)
+                const fieldSnap = await db.collection("fields").get();
+                fieldData = {};
+                fieldSnap.forEach(doc => {
+                    fieldData[doc.id] = doc.data();
+                });
+
+                renderFieldSlots();
+            } catch (err) {
+                console.error("Fehler beim Laden des Feldes:", err);
+            }
+        }
+
+        function renderFieldSlots() {
+            const grid = document.getElementById('fieldSlotsGrid');
+            grid.innerHTML = '';
+
+            // Wir erstellen 6 feste Anbau-Slots für das Feld
+            for (let i = 1; i <= 6; i++) {
+                const slotId = `slot_${i}`;
+                const slotInfo = fieldData[slotId] || { planted: null, status: 'Leer' };
+
+                const bubble = document.createElement('div');
+                bubble.className = 'item-bubble';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'item-name';
+                nameDiv.textContent = `🌱 Acker-Slot #${i}`;
+
+                const statusDiv = document.createElement('div');
+                statusDiv.style.margin = '0.8rem 0';
+                statusDiv.style.fontSize = '1.1rem';
+                statusDiv.style.fontWeight = 'bold';
+
+                if (slotInfo.planted) {
+                    statusDiv.innerHTML = `Angebaut: <span style="color: var(--dc-success);">${slotInfo.planted}</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span style="color: var(--dc-text-muted);">Unbebaut (Leer)</span>`;
+                }
+
+                const controls = document.createElement('div');
+                controls.className = 'controls';
+
+                if (!slotInfo.planted) {
+                    // Dropdown mit verfügbaren Lagerelementen als Saatgut
+                    const select = document.createElement('select');
+                    select.id = `select_${slotId}`;
+                    select.style.padding = '0.4rem';
+                    select.style.background = 'var(--dc-bg-primary)';
+                    select.style.color = 'var(--dc-text-header)';
+                    select.style.border = '1px solid var(--dc-border)';
+                    select.style.borderRadius = '6px';
+
+                    let optionsHtml = '<option value="">-- Saatgut wählen --</option>';
+                    Object.keys(inventoryData).forEach(invId => {
+                        optionsHtml += `<option value="${inventoryData[invId].name}">${inventoryData[invId].name}</option>`;
+                    });
+                    select.innerHTML = optionsHtml;
+
+                    const btnPlant = document.createElement('button');
+                    btnPlant.className = 'btn btn-success btn-sm';
+                    btnPlant.textContent = 'Pflanzen';
+                    btnPlant.onclick = () => plantSeed(slotId, i);
+
+                    controls.appendChild(select);
+                    controls.appendChild(btnPlant);
+                } else {
+                    const btnHarvest = document.createElement('button');
+                    btnHarvest.className = 'btn btn-gold btn-sm';
+                    btnHarvest.textContent = 'Ernten & Freigeben';
+                    btnHarvest.onclick = () => harvestField(slotId, i, slotInfo.planted);
+
+                    controls.appendChild(btnHarvest);
+                }
+
+                bubble.appendChild(nameDiv);
+                bubble.appendChild(statusDiv);
+                bubble.appendChild(controls);
+                grid.appendChild(bubble);
+            }
+        }
+
+        window.plantSeed = async function(slotId, slotNum) {
+            const select = document.getElementById(`select_${slotId}`);
+            const seedName = select.value;
+
+            if (!seedName) {
+                alert("Bitte wähle Saatgut aus!");
+                return;
+            }
+
+            try {
+                await db.collection("fields").doc(slotId).set({ planted: seedName, status: 'Wächst' });
+                await sendDiscordWebhook("Feld bepflanzt", `Auf Acker-Slot #${slotNum} wurde **${seedName}** angebaut.`);
+                loadFieldData();
+            } catch (err) {
+                console.error("Fehler beim Pflanzen:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
+
+        window.harvestField = async function(slotId, slotNum, plantName) {
+            try {
+                await db.collection("fields").doc(slotId).delete();
+                await sendDiscordWebhook("Feld geerntet", `Acker-Slot #${slotNum} (**${plantName}**) wurde abgeerntet.`);
+                alert(`Erfolgreich geerntet! Slot #${slotNum} ist wieder frei.`);
+                loadFieldData();
+            } catch (err) {
+                console.error("Fehler beim Ernten:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
+
         // --- TIERSTALL LOGIK ---
         async function loadStallData() {
             try {
@@ -1382,7 +1511,7 @@
 
                 const btnSlaughter = document.createElement('button');
                 btnSlaughter.className = 'btn btn-danger';
-                btnSlaughter.textContent = '🍖 Schlachten (Gibt Fleisch)';
+                btnSlaughter.textContent = '🍖 Schlachten';
                 btnSlaughter.onclick = () => slaughterAnimal(id, animal.name);
 
                 controls.appendChild(btnSlaughter);
@@ -1443,7 +1572,6 @@
                     return;
                 }
 
-                // Einstellungen für Fleisch aus Firebase holen (Default: min 2, max 10)
                 let meatMin = 2;
                 let meatMax = 10;
                 try {
@@ -1453,17 +1581,15 @@
                         meatMax = settingsSnap.data().meatMax ?? 10;
                     }
                 } catch (e) {
-                    console.error("Konnte Fleisch-Einstellungen nicht laden, nutze Standardwerte", e);
+                    console.error("Konnte Fleisch-Einstellungen nicht laden", e);
                 }
 
-                // Zufällige Fleischmenge zwischen min und max generieren
                 const meatGenerated = Math.floor(Math.random() * (meatMax - meatMin + 1)) + meatMin;
 
                 stallData[docId].amount = newAmount;
                 renderStall();
                 await animalRef.update({ amount: newAmount });
 
-                // Fleisch automatisch ins Haupt-Lager buchen
                 const meatName = animalName + "fleisch";
                 const meatId = normalizeItemName(meatName);
                 const formattedMeatName = meatName.charAt(0).toUpperCase() + meatName.slice(1);
