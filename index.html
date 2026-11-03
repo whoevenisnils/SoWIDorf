@@ -405,9 +405,72 @@
             font-size: 0.85rem;
             margin-top: 0.5rem;
         }
+
+        /* CUSTOM MODAL OVERLAY */
+        #customModalOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        #customModalOverlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .custom-modal {
+            background-color: var(--dc-bg-secondary);
+            border: 1px solid var(--dc-border);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+
+        .custom-modal h3 {
+            color: var(--dc-text-header);
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .custom-modal p {
+            color: var(--dc-text-normal);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+
+        .custom-modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
+
+    <!-- CUSTOM IN-APP MODAL -->
+    <div id="customModalOverlay">
+        <div class="custom-modal">
+            <h3 id="modalTitle">Hinweis</h3>
+            <p id="modalMessage">Nachrichtentext...</p>
+            <div id="modalButtons" class="custom-modal-buttons">
+                <!-- Dynamisch generierte Buttons -->
+            </div>
+        </div>
+    </div>
 
     <header>
         <h1>🌾 Dorf-Website</h1>
@@ -579,7 +642,7 @@
         <div id="fieldPage" class="page">
             <section class="card">
                 <h2>🌱 Admin-Feldverwaltung (Anbau-Slots)</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Wähle Saatgut aus dem Lager aus und pflanze es an.</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Wähle Saatgut aus dem Lager aus und pflanze es an (verbraucht 1x Saatgut).</p>
                 <div id="fieldSlotsGrid" class="inventory-grid"></div>
             </section>
         </div>
@@ -608,12 +671,12 @@
 
                 <!-- SAATGUT & ERTRAG EINSTELLUNGEN -->
                 <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.1rem; color: var(--dc-success); margin-bottom: 0.5rem;">🌱 Saatgut & Ertrag (Was beim Ernten rauskommt)</h3>
-                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Trage ein, welches Saatgut welches Endprodukt ergibt im Format <code>saatgut:endprodukt</code> (durch Komma getrennt).</p>
+                    <h3 style="font-size: 1.1rem; color: var(--dc-success); margin-bottom: 0.5rem;">🌱 Saatgut, Ertrag & Erntemenge einstellen</h3>
+                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Trage ein im Format <code>saatgut:endprodukt:anzahl</code> (durch Komma getrennt).</p>
                     <div style="display: flex; flex-direction: column; gap: 0.8rem; max-width: 600px;">
                         <div>
-                            <label style="font-size: 0.75rem; color: var(--dc-text-muted); display: block;">Saatgut & Ertrag (z.B. weizenkorn:Weizen, kartoffelsaat:Kartoffeln):</label>
-                            <input type="text" id="adminSeedMappingInput" value="weizenkorn:Weizen, kartoffelsaat:Kartoffeln, karottensaat:Karotten" style="width: 100%; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                            <label style="font-size: 0.75rem; color: var(--dc-text-muted); display: block;">Beispiel: <code>kartoffelsaat:Kartoffeln:5, karottensaat:Karotten:3</code></label>
+                            <input type="text" id="adminSeedMappingInput" value="kartoffelsaat:Kartoffeln:5, karottensaat:Karotten:3" style="width: 100%; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
                         </div>
                         <div>
                             <label style="font-size: 0.75rem; color: var(--dc-text-muted); display: block;">Anzahl Anbau-Slots:</label>
@@ -687,7 +750,7 @@
 
     </main>
 
-    <!-- FIREBASE LOGIK -->
+    <!-- FIREBASE & MODAL LOGIK -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBQ3oZwxLGbzGTTWoNa4uxHzjICkCo_wlE",
@@ -701,6 +764,47 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // In-App Modal System (ersetzt alert / confirm)
+        function showModal(title, message, isConfirm = false, onConfirm = null) {
+            const overlay = document.getElementById('customModalOverlay');
+            const titleEl = document.getElementById('modalTitle');
+            const msgEl = document.getElementById('modalMessage');
+            const buttonsEl = document.getElementById('modalButtons');
+
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+            buttonsEl.innerHTML = '';
+
+            if (isConfirm) {
+                const btnCancel = document.createElement('button');
+                btnCancel.className = 'btn btn-sm btn-danger';
+                btnCancel.textContent = 'Abbrechen';
+                btnCancel.onclick = () => { overlay.classList.remove('visible'); };
+
+                const btnOk = document.createElement('button');
+                btnOk.className = 'btn btn-sm btn-success';
+                btnOk.textContent = 'Bestätigen';
+                btnOk.onclick = () => {
+                    overlay.classList.remove('visible');
+                    if (onConfirm) onConfirm();
+                };
+
+                buttonsEl.appendChild(btnCancel);
+                buttonsEl.appendChild(btnOk);
+            } else {
+                const btnOk = document.createElement('button');
+                btnOk.className = 'btn btn-sm';
+                btnOk.textContent = 'OK';
+                btnOk.onclick = () => {
+                    overlay.classList.remove('visible');
+                    if (onConfirm) onConfirm();
+                };
+                buttonsEl.appendChild(btnOk);
+            }
+
+            overlay.classList.add('visible');
+        }
 
         // Dein integrierter Discord Webhook
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1566901868188139532/-hpv9GiYi1kW7pYDk7L_zO02ppdPXNAau0cqDj02DD1W3LiFaaKfmVtRhBf-3L0V0Mpc";
@@ -782,8 +886,9 @@
 
             accountListener = db.collection("users").doc(currentUser.toLowerCase()).onSnapshot((doc) => {
                 if (!doc.exists) {
-                    alert("Dein Account wurde von einem Administrator gelöscht!");
-                    logout();
+                    showModal("Account gelöscht", "Dein Account wurde von einem Administrator gelöscht!", false, () => {
+                        logout();
+                    });
                 }
             });
         }
@@ -828,9 +933,9 @@
                 });
 
                 if (isCurrentlyHidden) {
-                    alert("🔓 Admin-Zusatzbereiche (Stall, Feld, Map) wurden freigeschaltet!");
+                    showModal("Freigeschaltet", "🔓 Admin-Zusatzbereiche (Stall, Feld, Map) wurden freigeschaltet!");
                 } else {
-                    alert("🔒 Admin-Zusatzbereiche wurden wieder versteckt.");
+                    showModal("Eingeschränkt", "🔒 Admin-Zusatzbereiche wurden wieder versteckt.");
                 }
             }
 
@@ -892,8 +997,8 @@
             } else {
                 loginForm.classList.add('hidden');
                 regForm.classList.remove('hidden');
-                loginTab.classList.add('active');
-                regTab.classList.remove('active');
+                loginTab.classList.remove('active');
+                regTab.classList.add('active');
             }
         };
 
@@ -911,7 +1016,7 @@
                 const userSnap = await userRef.get();
 
                 if (userSnap.exists) {
-                    alert('Dieser Bürger-Name existiert bereits!');
+                    showModal("Fehler", 'Dieser Bürger-Name existiert bereits!');
                     return;
                 }
 
@@ -937,7 +1042,7 @@
                 }, 1500);
             } catch (err) {
                 console.error("Fehler bei Registrierung:", err);
-                alert("Fehler beim Speichern: " + err.message);
+                showModal("Fehler", "Fehler beim Speichern: " + err.message);
             }
         };
 
@@ -1081,7 +1186,7 @@
                 setTimeout(() => status.classList.add('hidden'), 2000);
             } catch (err) {
                 console.error("Fehler beim Speichern der Regeln:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1102,7 +1207,7 @@
                     const data = settingsSnap.data();
                     document.getElementById('adminMeatMin').value = data.meatMin ?? 2;
                     document.getElementById('adminMeatMax').value = data.meatMax ?? 10;
-                    document.getElementById('adminSeedMappingInput').value = data.seedMapping || "weizenkorn:Weizen, kartoffelsaat:Kartoffeln, karottensaat:Karotten";
+                    document.getElementById('adminSeedMappingInput').value = data.seedMapping || "kartoffelsaat:Kartoffeln:5, karottensaat:Karotten:3";
                     document.getElementById('adminFieldSlotsInput').value = data.fieldSlots ?? 6;
                 }
 
@@ -1164,7 +1269,7 @@
                             `}
                         </td>
                         <td>
-                            ${isNils ? '-' : `<button class="btn btn-danger btn-sm" onclick="deleteUserAccount('${docId}', '${data.username}')">❌ Account löschen</button>`}
+                            ${isNils ? '-' : `<button class="btn btn-danger btn-sm" onclick="confirmDeleteUser('${docId}', '${data.username}')">❌ Account löschen</button>`}
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -1179,17 +1284,17 @@
             const max = parseInt(document.getElementById('adminMeatMax').value) || 10;
 
             if (min > max) {
-                alert("Das Minimum darf nicht größer sein als das Maximum!");
+                showModal("Fehler", "Das Minimum darf nicht größer sein als das Maximum!");
                 return;
             }
 
             try {
                 await db.collection("economy").doc("settings").set({ meatMin: min, meatMax: max }, { merge: true });
                 await sendDiscordWebhook("Einstellungen aktualisiert", `Fleisch-Ausbeute angepasst: **${min} - ${max} Einheiten**`, 16776960);
-                alert("Fleisch-Werte erfolgreich gespeichert!");
+                showModal("Erfolg", "Fleisch-Werte erfolgreich gespeichert!");
             } catch (err) {
                 console.error("Fehler beim Speichern der Fleisch-Werte:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1200,10 +1305,10 @@
             try {
                 await db.collection("economy").doc("settings").set({ seedMapping: seedMapping, fieldSlots: fieldSlots }, { merge: true });
                 await sendDiscordWebhook("Feld-Einstellungen aktualisiert", `Saatgut-Zuordnung: **${seedMapping}**\nSlots: **${fieldSlots}**`, 16776960);
-                alert("Feld-Einstellungen erfolgreich gespeichert!");
+                showModal("Erfolg", "Feld-Einstellungen erfolgreich gespeichert!");
             } catch (err) {
                 console.error("Fehler beim Speichern der Feld-Einstellungen:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1212,11 +1317,11 @@
             const fileInput = document.getElementById('adminImageIconInput');
 
             if (!itemId) {
-                alert("Bitte wähle zuerst ein Item aus!");
+                showModal("Hinweis", "Bitte wähle zuerst ein Item aus!");
                 return;
             }
             if (fileInput.files.length === 0) {
-                alert("Bitte wähle eine Bilddatei aus!");
+                showModal("Hinweis", "Bitte wähle eine Bilddatei aus!");
                 return;
             }
 
@@ -1232,30 +1337,30 @@
 
                     await sendDiscordWebhook("Item-Icon aktualisiert", `Neues Bild für Item **${itemId}** hochgeladen.`);
 
-                    alert("Das Icon wurde erfolgreich hochgeladen und gespeichert!");
+                    showModal("Erfolg", "Das Icon wurde erfolgreich hochgeladen und gespeichert!");
                     fileInput.value = '';
                     loadInventory();
                 } catch (err) {
                     console.error("Fehler beim Hochladen:", err);
-                    alert("Fehler: " + err.message);
+                    showModal("Fehler", "Fehler: " + err.message);
                 }
             };
 
             reader.readAsDataURL(file);
         };
 
-        window.deleteUserAccount = async function(docId, username) {
-            if (!confirm(`Möchtest du den Account von "${username}" wirklich unwiderruflich löschen?`)) return;
-
-            try {
-                await db.collection("users").doc(docId).delete();
-                await sendDiscordWebhook("Account gelöscht", `Der Account von **${username}** wurde gelöscht.`, 15158332);
-                alert(`Der Account von ${username} wurde gelöscht.`);
-                loadAdminData();
-            } catch (err) {
-                console.error("Fehler beim Löschen des Accounts:", err);
-                alert("Fehler: " + err.message);
-            }
+        window.confirmDeleteUser = function(docId, username) {
+            showModal("Account löschen", `Möchtest du den Account von "${username}" wirklich unwiderruflich löschen?`, true, async () => {
+                try {
+                    await db.collection("users").doc(docId).delete();
+                    await sendDiscordWebhook("Account gelöscht", `Der Account von **${username}** wurde gelöscht.`, 15158332);
+                    showModal("Erfolg", `Der Account von ${username} wurde gelöscht.`);
+                    loadAdminData();
+                } catch (err) {
+                    console.error("Fehler beim Löschen des Accounts:", err);
+                    showModal("Fehler", "Fehler: " + err.message);
+                }
+            });
         };
 
         window.updateVillageTreasury = async function() {
@@ -1263,17 +1368,17 @@
             const newAmount = Number(val);
 
             if (isNaN(newAmount)) {
-                alert("Bitte gib einen gültigen Betrag ein!");
+                showModal("Fehler", "Bitte gib einen gültigen Betrag ein!");
                 return;
             }
 
             try {
                 await db.collection("economy").doc("treasury").set({ totalAmount: newAmount });
                 await sendDiscordWebhook("Dorfkasse angepasst", `Neuer Kontostand der Dorfkasse: **${newAmount.toLocaleString('de-DE')} 🪙**`, 16776960);
-                alert("Vermögen der Dorfkasse erfolgreich aktualisiert!");
+                showModal("Erfolg", "Vermögen der Dorfkasse erfolgreich aktualisiert!");
             } catch (err) {
                 console.error("Fehler beim Ändern der Dorfkasse:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1282,18 +1387,18 @@
             const newBalance = Number(inputVal);
 
             if (isNaN(newBalance)) {
-                alert("Bitte gib eine gültige Zahl ein!");
+                showModal("Fehler", "Bitte gib eine gültige Zahl ein!");
                 return;
             }
 
             try {
                 await db.collection("users").doc(docId).update({ balance: newBalance });
                 await sendDiscordWebhook("Kontostand geändert", `Bürger **${username}** hat neuen Kontostand: **${newBalance.toLocaleString('de-DE')} 🪙**`, 16776960);
-                alert("Kontostand aktualisiert!");
+                showModal("Erfolg", "Kontostand aktualisiert!");
                 loadAdminData();
             } catch (err) {
                 console.error("Fehler:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1302,10 +1407,10 @@
             try {
                 await db.collection("users").doc(docId).update({ socialClass: newClass });
                 await sendDiscordWebhook("Soziale Schicht geändert", `Bürger **${username}** ist jetzt in Schicht: **${newClass}**`);
-                alert("Soziale Schicht aktualisiert!");
+                showModal("Erfolg", "Soziale Schicht aktualisiert!");
             } catch (err) {
                 console.error("Fehler:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1314,10 +1419,10 @@
             try {
                 await db.collection("users").doc(docId).update({ job: newJob });
                 await sendDiscordWebhook("Beruf geändert", `Bürger **${username}** hat neuen Beruf: **${newJob}**`);
-                alert("Beruf erfolgreich aktualisiert!");
+                showModal("Erfolg", "Beruf erfolgreich aktualisiert!");
             } catch (err) {
                 console.error("Fehler beim Aktualisieren des Berufs:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1325,11 +1430,11 @@
             try {
                 await db.collection("users").doc(docId).update({ isAdmin: makeAdmin });
                 await sendDiscordWebhook("Admin-Status geändert", `Bürger **${username}** ${makeAdmin ? 'ist nun Admin' : 'ist kein Admin mehr'}.`, 15158332);
-                alert(makeAdmin ? "Admin-Rechte vergeben!" : "Admin-Rechte entzogen!");
+                showModal("Erfolg", makeAdmin ? "Admin-Rechte vergeben!" : "Admin-Rechte entzogen!");
                 loadAdminData();
             } catch (err) {
                 console.error("Fehler:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1363,19 +1468,19 @@
 
                 await sendDiscordWebhook("💰 Gehälter ausgezahlt", `Gesamtauszahlung: **${totalPayout.toLocaleString('de-DE')} 🪙**\nNeue Dorfkasse: **${newTreasury.toLocaleString('de-DE')} 🪙**`, 3066993);
 
-                alert(`Gehälter wurden ausgezahlt!\n\n- Gesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} 🪙\n- Monatliches Dorfeinkommen: +1.620 🪙\n- Neue Dorfkasse: ${newTreasury.toLocaleString('de-DE')} 🪙`);
+                showModal("Gehälter ausgezahlt", `Gesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} 🪙\nMonatliches Dorfeinkommen: +1.620 🪙\nNeue Dorfkasse: ${newTreasury.toLocaleString('de-DE')} 🪙`);
                 
                 loadAdminData();
             } catch (err)  {
                 console.error("Fehler beim Auszahlen:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
-        // --- FELD-VERWALTUNG (SAATGUT & ERTRAG) ---
+        // --- FELD-VERWALTUNG ---
         async function loadFieldData() {
             try {
-                let seedMappingStr = "weizenkorn:Weizen, kartoffelsaat:Kartoffeln, karottensaat:Karotten";
+                let seedMappingStr = "kartoffelsaat:Kartoffeln:5, karottensaat:Karotten:3";
                 let totalSlots = 6;
                 try {
                     const settingsSnap = await db.collection("economy").doc("settings").get();
@@ -1387,16 +1492,17 @@
                     console.error("Fehler beim Laden der Feld-Einstellungen", e);
                 }
 
-                // Mappings parsen (z.B. weizenkorn -> Weizen)
                 const seedMap = {};
                 seedMappingStr.split(',').forEach(pair => {
                     const parts = pair.split(':');
-                    if (parts.length === 2) {
-                        seedMap[parts[0].trim().toLowerCase()] = parts[1].trim();
+                    if (parts.length >= 2) {
+                        const seedKey = parts[0].trim().toLowerCase();
+                        const product = parts[1].trim();
+                        const amount = parts.length > 2 ? (parseInt(parts[2].trim()) || 1) : 1;
+                        seedMap[seedKey] = { product, amount };
                     }
                 });
 
-                // Lager-Daten laden und nach definiertem Saatgut filtern
                 const invSnap = await db.collection("inventory").get();
                 inventoryData = {};
                 invSnap.forEach(doc => {
@@ -1409,7 +1515,6 @@
                     }
                 });
 
-                // Felder laden
                 const fieldSnap = await db.collection("fields").get();
                 fieldData = {};
                 fieldSnap.forEach(doc => {
@@ -1428,7 +1533,7 @@
 
             for (let i = 1; i <= totalSlots; i++) {
                 const slotId = `slot_${i}`;
-                const slotInfo = fieldData[slotId] || { planted: null, yieldProduct: null, status: 'Leer' };
+                const slotInfo = fieldData[slotId] || { planted: null, seedId: null, yieldProduct: null, yieldAmount: 1, status: 'Leer' };
 
                 const bubble = document.createElement('div');
                 bubble.className = 'item-bubble';
@@ -1443,7 +1548,7 @@
                 statusDiv.style.fontWeight = 'bold';
 
                 if (slotInfo.planted) {
-                    statusDiv.innerHTML = `Angebaut: <span style="color: var(--dc-success);">${slotInfo.planted}</span><br><span style="font-size: 0.85rem; color: var(--dc-text-muted);">Gibt bei Ernte: <strong>${slotInfo.yieldProduct}</strong></span>`;
+                    statusDiv.innerHTML = `Angebaut: <span style="color: var(--dc-success);">${slotInfo.planted}</span><br><span style="font-size: 0.85rem; color: var(--dc-text-muted);">Gibt bei Ernte: <strong>${slotInfo.yieldAmount}x ${slotInfo.yieldProduct}</strong></span>`;
                 } else {
                     statusDiv.innerHTML = `<span style="color: var(--dc-text-muted);">Unbebaut (Leer)</span>`;
                 }
@@ -1463,15 +1568,15 @@
                     let optionsHtml = '<option value="">-- Saatgut wählen --</option>';
                     Object.keys(inventoryData).forEach(invId => {
                         const item = inventoryData[invId];
-                        const yieldName = seedMap[invId.toLowerCase()] || seedMap[item.name.toLowerCase()] || "Ertrag";
-                        optionsHtml += `<option value="${item.name}" data-yield="${yieldName}">${item.name} (${item.amount} Stk.) ➔ Bringt: ${yieldName}</option>`;
+                        const mapEntry = seedMap[invId.toLowerCase()] || seedMap[item.name.toLowerCase()] || { product: "Produkt", amount: 1 };
+                        optionsHtml += `<option value="${invId}" data-name="${item.name}" data-yield="${mapEntry.product}" data-yield-amt="${mapEntry.amount}">${item.name} (${item.amount} Stk.) ➔ +${mapEntry.amount} ${mapEntry.product}</option>`;
                     });
                     select.innerHTML = optionsHtml;
 
                     const btnPlant = document.createElement('button');
                     btnPlant.className = 'btn btn-success btn-sm';
                     btnPlant.textContent = 'Pflanzen';
-                    btnPlant.onclick = () => plantSeed(slotId, i, select);
+                    btnPlant.onclick = () => plantSeed(slotId, i, select, seedMap);
 
                     controls.appendChild(select);
                     controls.appendChild(btnPlant);
@@ -1479,7 +1584,7 @@
                     const btnHarvest = document.createElement('button');
                     btnHarvest.className = 'btn btn-gold btn-sm';
                     btnHarvest.textContent = 'Ernten & Freigeben';
-                    btnHarvest.onclick = () => harvestField(slotId, i, slotInfo.yieldProduct);
+                    btnHarvest.onclick = () => harvestField(slotId, i, slotInfo.yieldProduct, slotInfo.yieldAmount);
 
                     controls.appendChild(btnHarvest);
                 }
@@ -1491,46 +1596,68 @@
             }
         }
 
-        window.plantSeed = async function(slotId, slotNum, selectElement) {
+        window.plantSeed = async function(slotId, slotNum, selectElement, seedMap) {
             const selectedOption = selectElement.options[selectElement.selectedIndex];
-            const seedName = selectElement.value;
-            const yieldProduct = selectedOption.getAttribute('data-yield') || "Produkt";
+            const seedId = selectElement.value;
+            const seedName = selectedOption.getAttribute('data-name');
+            const yieldProduct = selectedOption.getAttribute('data-yield');
+            const yieldAmount = parseInt(selectedOption.getAttribute('data-yield-amt')) || 1;
 
-            if (!seedName) {
-                alert("Bitte wähle Saatgut aus!");
+            if (!seedId) {
+                showModal("Hinweis", "Bitte wähle Saatgut aus!");
                 return;
             }
 
             try {
+                const seedRef = db.collection("inventory").doc(seedId);
+                const seedSnap = await seedRef.get();
+
+                if (!seedSnap.exists || (seedSnap.data().amount || 0) <= 0) {
+                    showModal("Hinweis", "Du hast dieses Saatgut nicht mehr im Lager!");
+                    loadFieldData();
+                    return;
+                }
+
+                const currentQty = seedSnap.data().amount;
+                const newQty = currentQty - 1;
+
+                if (newQty <= 0) {
+                    await seedRef.delete();
+                } else {
+                    await seedRef.update({ amount: newQty });
+                }
+
                 await db.collection("fields").doc(slotId).set({ 
                     planted: seedName, 
+                    seedId: seedId,
                     yieldProduct: yieldProduct, 
+                    yieldAmount: yieldAmount,
                     status: 'Wächst' 
                 });
-                await sendDiscordWebhook("Feld bepflanzt", `Auf Acker-Slot #${slotNum} wurde **${seedName}** angebaut (Ertrag: **${yieldProduct}**).`);
+
+                await sendDiscordWebhook("Feld bepflanzt", `Auf Acker-Slot #${slotNum} wurde **${seedName}** angebaut (-1 Saatgut aus Lager, Ertrag: **${yieldAmount}x ${yieldProduct}**).`);
                 loadFieldData();
             } catch (err) {
                 console.error("Fehler beim Pflanzen:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
-        window.harvestField = async function(slotId, slotNum, yieldProduct) {
+        window.harvestField = async function(slotId, slotNum, yieldProduct, yieldAmount) {
             try {
-                // Endprodukt automatisch ins Hauptlager buchen (z.B. +5 Einheiten bei Ernte)
                 const yieldId = normalizeItemName(yieldProduct);
                 const formattedYieldName = yieldProduct.charAt(0).toUpperCase() + yieldProduct.slice(1);
                 const inventoryRef = db.collection("inventory").doc(yieldId);
 
                 const invSnap = await inventoryRef.get();
-                let currentAmount = 5;
+                let currentAmount = yieldAmount;
                 let savedIcon = null;
 
                 const iconSnap = await db.collection("item_icons").doc(yieldId).get();
                 if (iconSnap.exists) savedIcon = iconSnap.data().imageUrl;
 
                 if (invSnap.exists) {
-                    currentAmount = (invSnap.data().amount || 0) + 5;
+                    currentAmount = (invSnap.data().amount || 0) + yieldAmount;
                     savedIcon = invSnap.data().imageUrl || savedIcon;
                 }
 
@@ -1540,13 +1667,13 @@
                 await inventoryRef.set(itemData);
                 await db.collection("fields").doc(slotId).delete();
 
-                await sendDiscordWebhook("Feld geerntet", `Acker-Slot #${slotNum} abgeerntet! 🌾\n+5 Einheiten **${formattedYieldName}** wurden ins Lager gebucht.`);
-                alert(`Erfolgreich geerntet! +5x ${formattedYieldName} wurden ins Lager gelegt.`);
+                await sendDiscordWebhook("Feld geerntet", `Acker-Slot #${slotNum} abgeerntet! 🌾\n+${yieldAmount} Einheiten **${formattedYieldName}** wurden ins Lager gebucht.`);
+                showModal("Erfolgreich geerntet", `+${yieldAmount}x ${formattedYieldName} wurden ins Lager gelegt.`);
 
                 loadFieldData();
             } catch (err) {
                 console.error("Fehler beim Ernten:", err);
-                alert("Fehler: " + err.message);
+                showModal("Fehler", "Fehler: " + err.message);
             }
         };
 
@@ -1657,7 +1784,7 @@
                     await animalRef.delete();
                     delete stallData[docId];
                     renderStall();
-                    alert(`Keine ${animalName} mehr im Stall zum Schlachten!`);
+                    showModal("Hinweis", `Keine ${animalName} mehr im Stall zum Schlachten!`);
                     return;
                 }
 
@@ -1702,7 +1829,7 @@
                 await inventoryRef.set(meatData);
 
                 await sendDiscordWebhook("Stall: Tier geschlachtet", `Ein **${animalName}** wurde geschlachtet! 🍖\n+${meatGenerated} Einheiten **${formattedMeatName}** wurden ins Lager gebucht.`);
-                alert(`Du hast ein ${animalName} geschlachtet! +${meatGenerated}x ${formattedMeatName} wurden ins Lager gelegt.`);
+                showModal("Tier geschlachtet", `Du hast ein ${animalName} geschlachtet! +${meatGenerated}x ${formattedMeatName} wurden ins Lager gelegt.`);
 
                 loadStallData();
             } catch (err) {
@@ -1889,7 +2016,7 @@
             const newAmount = parseInt(inputElement.value);
 
             if (isNaN(newAmount) || newAmount < 0) {
-                alert("Bitte gib eine gültige Zahl ein (ab 0)!");
+                showModal("Fehler", "Bitte gib eine gültige Zahl ein (ab 0)!");
                 return;
             }
 
@@ -1908,24 +2035,24 @@
             }
         };
 
-        window.resetEntireInventory = async function() {
-            if (!confirm("Möchtest du wirklich das gesamte Lager leeren?")) return;
-            
-            try {
-                const snapshot = await db.collection("inventory").get();
-                const batch = db.batch();
-                snapshot.forEach((doc) => {
-                    batch.delete(doc.ref);
-                });
-                await batch.commit();
+        window.resetEntireInventory = function() {
+            showModal("Lager leeren", "Möchtest du wirklich das gesamte Lager leeren?", true, async () => {
+                try {
+                    const snapshot = await db.collection("inventory").get();
+                    const batch = db.batch();
+                    snapshot.forEach((doc) => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
 
-                await sendDiscordWebhook("⚠️ Lager geleert", `Das gesamte Lager wurde von **${currentUser}** vollständig geleert!`, 15158332);
+                    await sendDiscordWebhook("⚠️ Lager geleert", `Das gesamte Lager wurde von **${currentUser}** vollständig geleert!`, 15158332);
 
-                alert("Das Lager wurde erfolgreich vollständig geleert!");
-                loadInventory();
-            } catch (err) {
-                console.error("Fehler:", err);
-            }
+                    showModal("Erfolg", "Das Lager wurde erfolgreich vollständig geleert!");
+                    loadInventory();
+                } catch (err) {
+                    console.error("Fehler:", err);
+                }
+            });
         };
     </script>
 </body>
