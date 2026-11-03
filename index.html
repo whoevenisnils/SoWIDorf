@@ -579,7 +579,7 @@
         <div id="fieldPage" class="page">
             <section class="card">
                 <h2>🌱 Admin-Feldverwaltung (Anbau-Slots)</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Wähle Saatgut aus dem Lager aus und pflanze es auf den Feldern an.</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Wähle Saatgut aus dem Lager aus und pflanze es an.</p>
                 <div id="fieldSlotsGrid" class="inventory-grid"></div>
             </section>
         </div>
@@ -604,6 +604,23 @@
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
                     <button class="btn btn-gold" onclick="distributeSalaries()">💰 Gehälter für alle auszahlen</button>
                     <button class="btn btn-danger" onclick="resetEntireInventory()">📦 Gesamtes Lager leeren</button>
+                </div>
+
+                <!-- SAATGUT & ERTRAG EINSTELLUNGEN -->
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; color: var(--dc-success); margin-bottom: 0.5rem;">🌱 Saatgut & Ertrag (Was beim Ernten rauskommt)</h3>
+                    <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Trage ein, welches Saatgut welches Endprodukt ergibt im Format <code>saatgut:endprodukt</code> (durch Komma getrennt).</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem; max-width: 600px;">
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--dc-text-muted); display: block;">Saatgut & Ertrag (z.B. weizenkorn:Weizen, kartoffelsaat:Kartoffeln):</label>
+                            <input type="text" id="adminSeedMappingInput" value="weizenkorn:Weizen, kartoffelsaat:Kartoffeln, karottensaat:Karotten" style="width: 100%; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--dc-text-muted); display: block;">Anzahl Anbau-Slots:</label>
+                            <input type="number" id="adminFieldSlotsInput" min="1" max="50" value="6" style="width: 120px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px;">
+                        </div>
+                        <button class="btn btn-success btn-sm" onclick="saveFieldSettings()">💾 Feld-Einstellungen speichern</button>
+                    </div>
                 </div>
 
                 <!-- FLEISCH-AUSBEUTE EINSTELLUNGEN -->
@@ -875,8 +892,8 @@
             } else {
                 loginForm.classList.add('hidden');
                 regForm.classList.remove('hidden');
-                loginTab.classList.remove('active');
-                regTab.classList.add('active');
+                loginTab.classList.add('active');
+                regTab.classList.remove('active');
             }
         };
 
@@ -1078,12 +1095,15 @@
                 }
                 document.getElementById('adminTreasuryInput').value = currentTreasury;
 
-                // Fleisch Einstellungen laden
+                // Einstellungen laden
                 const settingsRef = db.collection("economy").doc("settings");
                 const settingsSnap = await settingsRef.get();
                 if (settingsSnap.exists) {
-                    document.getElementById('adminMeatMin').value = settingsSnap.data().meatMin ?? 2;
-                    document.getElementById('adminMeatMax').value = settingsSnap.data().meatMax ?? 10;
+                    const data = settingsSnap.data();
+                    document.getElementById('adminMeatMin').value = data.meatMin ?? 2;
+                    document.getElementById('adminMeatMax').value = data.meatMax ?? 10;
+                    document.getElementById('adminSeedMappingInput').value = data.seedMapping || "weizenkorn:Weizen, kartoffelsaat:Kartoffeln, karottensaat:Karotten";
+                    document.getElementById('adminFieldSlotsInput').value = data.fieldSlots ?? 6;
                 }
 
                 const invSnap = await db.collection("inventory").get();
@@ -1165,10 +1185,24 @@
 
             try {
                 await db.collection("economy").doc("settings").set({ meatMin: min, meatMax: max }, { merge: true });
-                await sendDiscordWebhook("Einstellungen aktualisiert", `Fleisch-Ausbeute beim Schlachten angepasst: **${min} - ${max} Einheiten**`, 16776960);
+                await sendDiscordWebhook("Einstellungen aktualisiert", `Fleisch-Ausbeute angepasst: **${min} - ${max} Einheiten**`, 16776960);
                 alert("Fleisch-Werte erfolgreich gespeichert!");
             } catch (err) {
                 console.error("Fehler beim Speichern der Fleisch-Werte:", err);
+                alert("Fehler: " + err.message);
+            }
+        };
+
+        window.saveFieldSettings = async function() {
+            const seedMapping = document.getElementById('adminSeedMappingInput').value.trim();
+            const fieldSlots = parseInt(document.getElementById('adminFieldSlotsInput').value) || 6;
+
+            try {
+                await db.collection("economy").doc("settings").set({ seedMapping: seedMapping, fieldSlots: fieldSlots }, { merge: true });
+                await sendDiscordWebhook("Feld-Einstellungen aktualisiert", `Saatgut-Zuordnung: **${seedMapping}**\nSlots: **${fieldSlots}**`, 16776960);
+                alert("Feld-Einstellungen erfolgreich gespeichert!");
+            } catch (err) {
+                console.error("Fehler beim Speichern der Feld-Einstellungen:", err);
                 alert("Fehler: " + err.message);
             }
         };
@@ -1338,37 +1372,63 @@
             }
         };
 
-        // --- FELD-VERWALTUNG (ANBAU-SLOTS) ---
+        // --- FELD-VERWALTUNG (SAATGUT & ERTRAG) ---
         async function loadFieldData() {
             try {
-                // Lager-Daten laden für die Saatgut-Auswahl
+                let seedMappingStr = "weizenkorn:Weizen, kartoffelsaat:Kartoffeln, karottensaat:Karotten";
+                let totalSlots = 6;
+                try {
+                    const settingsSnap = await db.collection("economy").doc("settings").get();
+                    if (settingsSnap.exists) {
+                        seedMappingStr = settingsSnap.data().seedMapping || seedMappingStr;
+                        totalSlots = settingsSnap.data().fieldSlots ?? 6;
+                    }
+                } catch (e) {
+                    console.error("Fehler beim Laden der Feld-Einstellungen", e);
+                }
+
+                // Mappings parsen (z.B. weizenkorn -> Weizen)
+                const seedMap = {};
+                seedMappingStr.split(',').forEach(pair => {
+                    const parts = pair.split(':');
+                    if (parts.length === 2) {
+                        seedMap[parts[0].trim().toLowerCase()] = parts[1].trim();
+                    }
+                });
+
+                // Lager-Daten laden und nach definiertem Saatgut filtern
                 const invSnap = await db.collection("inventory").get();
                 inventoryData = {};
                 invSnap.forEach(doc => {
-                    inventoryData[doc.id] = doc.data();
+                    const data = doc.data();
+                    const cleanId = doc.id.toLowerCase();
+                    const cleanName = (data.name || "").toLowerCase();
+                    
+                    if (seedMap[cleanId] || Object.keys(seedMap).some(s => cleanName.includes(s))) {
+                        inventoryData[doc.id] = data;
+                    }
                 });
 
-                // Felder laden (Wir simulieren standardmäßig 6 Anbau-Slots)
+                // Felder laden
                 const fieldSnap = await db.collection("fields").get();
                 fieldData = {};
                 fieldSnap.forEach(doc => {
                     fieldData[doc.id] = doc.data();
                 });
 
-                renderFieldSlots();
+                renderFieldSlots(totalSlots, seedMap);
             } catch (err) {
                 console.error("Fehler beim Laden des Feldes:", err);
             }
         }
 
-        function renderFieldSlots() {
+        function renderFieldSlots(totalSlots, seedMap) {
             const grid = document.getElementById('fieldSlotsGrid');
             grid.innerHTML = '';
 
-            // Wir erstellen 6 feste Anbau-Slots für das Feld
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= totalSlots; i++) {
                 const slotId = `slot_${i}`;
-                const slotInfo = fieldData[slotId] || { planted: null, status: 'Leer' };
+                const slotInfo = fieldData[slotId] || { planted: null, yieldProduct: null, status: 'Leer' };
 
                 const bubble = document.createElement('div');
                 bubble.className = 'item-bubble';
@@ -1383,7 +1443,7 @@
                 statusDiv.style.fontWeight = 'bold';
 
                 if (slotInfo.planted) {
-                    statusDiv.innerHTML = `Angebaut: <span style="color: var(--dc-success);">${slotInfo.planted}</span>`;
+                    statusDiv.innerHTML = `Angebaut: <span style="color: var(--dc-success);">${slotInfo.planted}</span><br><span style="font-size: 0.85rem; color: var(--dc-text-muted);">Gibt bei Ernte: <strong>${slotInfo.yieldProduct}</strong></span>`;
                 } else {
                     statusDiv.innerHTML = `<span style="color: var(--dc-text-muted);">Unbebaut (Leer)</span>`;
                 }
@@ -1392,7 +1452,6 @@
                 controls.className = 'controls';
 
                 if (!slotInfo.planted) {
-                    // Dropdown mit verfügbaren Lagerelementen als Saatgut
                     const select = document.createElement('select');
                     select.id = `select_${slotId}`;
                     select.style.padding = '0.4rem';
@@ -1403,14 +1462,16 @@
 
                     let optionsHtml = '<option value="">-- Saatgut wählen --</option>';
                     Object.keys(inventoryData).forEach(invId => {
-                        optionsHtml += `<option value="${inventoryData[invId].name}">${inventoryData[invId].name}</option>`;
+                        const item = inventoryData[invId];
+                        const yieldName = seedMap[invId.toLowerCase()] || seedMap[item.name.toLowerCase()] || "Ertrag";
+                        optionsHtml += `<option value="${item.name}" data-yield="${yieldName}">${item.name} (${item.amount} Stk.) ➔ Bringt: ${yieldName}</option>`;
                     });
                     select.innerHTML = optionsHtml;
 
                     const btnPlant = document.createElement('button');
                     btnPlant.className = 'btn btn-success btn-sm';
                     btnPlant.textContent = 'Pflanzen';
-                    btnPlant.onclick = () => plantSeed(slotId, i);
+                    btnPlant.onclick = () => plantSeed(slotId, i, select);
 
                     controls.appendChild(select);
                     controls.appendChild(btnPlant);
@@ -1418,7 +1479,7 @@
                     const btnHarvest = document.createElement('button');
                     btnHarvest.className = 'btn btn-gold btn-sm';
                     btnHarvest.textContent = 'Ernten & Freigeben';
-                    btnHarvest.onclick = () => harvestField(slotId, i, slotInfo.planted);
+                    btnHarvest.onclick = () => harvestField(slotId, i, slotInfo.yieldProduct);
 
                     controls.appendChild(btnHarvest);
                 }
@@ -1430,9 +1491,10 @@
             }
         }
 
-        window.plantSeed = async function(slotId, slotNum) {
-            const select = document.getElementById(`select_${slotId}`);
-            const seedName = select.value;
+        window.plantSeed = async function(slotId, slotNum, selectElement) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const seedName = selectElement.value;
+            const yieldProduct = selectedOption.getAttribute('data-yield') || "Produkt";
 
             if (!seedName) {
                 alert("Bitte wähle Saatgut aus!");
@@ -1440,8 +1502,12 @@
             }
 
             try {
-                await db.collection("fields").doc(slotId).set({ planted: seedName, status: 'Wächst' });
-                await sendDiscordWebhook("Feld bepflanzt", `Auf Acker-Slot #${slotNum} wurde **${seedName}** angebaut.`);
+                await db.collection("fields").doc(slotId).set({ 
+                    planted: seedName, 
+                    yieldProduct: yieldProduct, 
+                    status: 'Wächst' 
+                });
+                await sendDiscordWebhook("Feld bepflanzt", `Auf Acker-Slot #${slotNum} wurde **${seedName}** angebaut (Ertrag: **${yieldProduct}**).`);
                 loadFieldData();
             } catch (err) {
                 console.error("Fehler beim Pflanzen:", err);
@@ -1449,11 +1515,34 @@
             }
         };
 
-        window.harvestField = async function(slotId, slotNum, plantName) {
+        window.harvestField = async function(slotId, slotNum, yieldProduct) {
             try {
+                // Endprodukt automatisch ins Hauptlager buchen (z.B. +5 Einheiten bei Ernte)
+                const yieldId = normalizeItemName(yieldProduct);
+                const formattedYieldName = yieldProduct.charAt(0).toUpperCase() + yieldProduct.slice(1);
+                const inventoryRef = db.collection("inventory").doc(yieldId);
+
+                const invSnap = await inventoryRef.get();
+                let currentAmount = 5;
+                let savedIcon = null;
+
+                const iconSnap = await db.collection("item_icons").doc(yieldId).get();
+                if (iconSnap.exists) savedIcon = iconSnap.data().imageUrl;
+
+                if (invSnap.exists) {
+                    currentAmount = (invSnap.data().amount || 0) + 5;
+                    savedIcon = invSnap.data().imageUrl || savedIcon;
+                }
+
+                const itemData = { name: formattedYieldName, amount: currentAmount };
+                if (savedIcon) itemData.imageUrl = savedIcon;
+
+                await inventoryRef.set(itemData);
                 await db.collection("fields").doc(slotId).delete();
-                await sendDiscordWebhook("Feld geerntet", `Acker-Slot #${slotNum} (**${plantName}**) wurde abgeerntet.`);
-                alert(`Erfolgreich geerntet! Slot #${slotNum} ist wieder frei.`);
+
+                await sendDiscordWebhook("Feld geerntet", `Acker-Slot #${slotNum} abgeerntet! 🌾\n+5 Einheiten **${formattedYieldName}** wurden ins Lager gebucht.`);
+                alert(`Erfolgreich geerntet! +5x ${formattedYieldName} wurden ins Lager gelegt.`);
+
                 loadFieldData();
             } catch (err) {
                 console.error("Fehler beim Ernten:", err);
