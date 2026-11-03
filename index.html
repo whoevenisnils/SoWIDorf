@@ -456,9 +456,9 @@
             <div class="form-group">
                 <label for="regClass">Soziale Schicht</label>
                 <select id="regClass" required>
-                    <option value="untere">Untere soziale Schicht (630 € / Monat)</option>
-                    <option value="mittlere" selected>Mittlere soziale Schicht (900 € / Monat)</option>
-                    <option value="obere">Obere soziale Schicht (1.800 € / Monat)</option>
+                    <option value="untere">Untere soziale Schicht (630 🪙 / Monat)</option>
+                    <option value="mittlere" selected>Mittlere soziale Schicht (900 🪙 / Monat)</option>
+                    <option value="obere">Obere soziale Schicht (1.800 🪙 / Monat)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -508,12 +508,12 @@
             <div class="stats-grid">
                 <div class="stat-box">
                     <div>🏛️ Gesamtes Vermögen des Dorfes (Dorfkasse)</div>
-                    <div id="villageTreasury" class="stat-value">0 €</div>
-                    <div style="color: var(--dc-text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Einnahmen: 1.620 € / Monat</div>
+                    <div id="villageTreasury" class="stat-value">0 🪙</div>
+                    <div style="color: var(--dc-text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Einnahmen: 1.620 🪙 / Monat</div>
                 </div>
                 <div class="stat-box">
                     <div>💳 Mein persönlicher Kontostand</div>
-                    <div id="myBalance" class="stat-value">0 €</div>
+                    <div id="myBalance" class="stat-value">0 🪙</div>
                     <div id="myClassInfo" style="color: var(--dc-text-muted); font-size: 0.8rem; margin-top: 0.3rem;">Schicht: -</div>
                 </div>
             </div>
@@ -580,7 +580,7 @@
                 <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem;">
                     <h3 style="font-size: 1.1rem; color: var(--dc-gold); margin-bottom: 0.5rem;">🏛️ Gesamtes Vermögen des Dorfes (Dorfkasse) anpassen</h3>
                     <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 0.8rem;">
-                        <input type="number" id="adminTreasuryInput" placeholder="Betrag in €" style="width: 200px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px; font-size: 1rem;">
+                        <input type="number" id="adminTreasuryInput" placeholder="Betrag in 🪙" style="width: 200px; padding: 0.5rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px; font-size: 1rem;">
                         <button class="btn btn-gold btn-sm" onclick="updateVillageTreasury()">Dorfkasse aktualisieren</button>
                     </div>
                 </div>
@@ -593,7 +593,7 @@
                                 <th>Bürger</th>
                                 <th>Beruf</th>
                                 <th>Soziale Schicht</th>
-                                <th>Guthaben</th>
+                                <th>Guthaben 🪙</th>
                                 <th>Admin-Status</th>
                                 <th>Aktionen</th>
                             </tr>
@@ -648,6 +648,25 @@
             } catch (err) {
                 console.error("Fehler beim Senden des Webhooks:", err);
             }
+        }
+
+        // 🧠 Hilfsfunktion: Korrigiert Tippfehler und normalisiert Item-Namen (z.B. Apel -> apfel)
+        function normalizeItemName(inputName) {
+            if (!inputName) return "";
+            let clean = inputName.trim().toLowerCase();
+            
+            // Umlaute und Sonderzeichen anpassen
+            clean = clean.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+            
+            // Einfache gängige Vertipper-Korrekturen (Beispiel Apfel / Apel)
+            if (clean === "apel" || clean === "appfel" || clean === "apffl") {
+                return "apfel";
+            }
+            
+            // Doppelte Konsonanten/Buchstaben glätten (z.B. "holzss" -> "holz", "weizzzen" -> "weizen")
+            clean = clean.replace(/([b-df-hj-np-tv-z])\1+/g, '$1$1'); // max 2 behalten
+            
+            return clean;
         }
 
         let currentUser = sessionStorage.getItem('dorf_current_user') || null;
@@ -876,7 +895,7 @@
                 } else {
                     await treasuryRef.set({ totalAmount: villageBalance });
                 }
-                document.getElementById('villageTreasury').innerText = villageBalance.toLocaleString('de-DE') + ' €';
+                document.getElementById('villageTreasury').innerText = villageBalance.toLocaleString('de-DE') + ' 🪙';
 
                 const userRef = db.collection("users").doc(currentUser.toLowerCase());
                 const userSnap = await userRef.get();
@@ -884,14 +903,14 @@
                 if (userSnap.exists) {
                     const userData = userSnap.data();
                     const balance = userData.balance || 0;
-                    document.getElementById('myBalance').innerText = balance.toLocaleString('de-DE') + ' €';
+                    document.getElementById('myBalance').innerText = balance.toLocaleString('de-DE') + ' 🪙';
 
                     let className = 'Mittlere Schicht';
                     if (userData.socialClass === 'untere') className = 'Untere Schicht';
                     if (userData.socialClass === 'obere') className = 'Obere Schicht';
                     
                     const jobName = userData.job || 'Kein Beruf';
-                    document.getElementById('myClassInfo').innerText = `Beruf: ${jobName} | Schicht: ${className} (${salaries[userData.socialClass] || 900} € / Monat)`;
+                    document.getElementById('myClassInfo').innerText = `Beruf: ${jobName} | Schicht: ${className} (${salaries[userData.socialClass] || 900} 🪙 / Monat)`;
                 }
             } catch (err) {
                 console.error("Fehler beim Laden der Bankdaten:", err);
@@ -1084,7 +1103,7 @@
 
             try {
                 await db.collection("economy").doc("treasury").set({ totalAmount: newAmount });
-                await sendDiscordWebhook("Dorfkasse angepasst", `Neuer Kontostand der Dorfkasse: **${newAmount.toLocaleString('de-DE')} €**`, 16776960);
+                await sendDiscordWebhook("Dorfkasse angepasst", `Neuer Kontostand der Dorfkasse: **${newAmount.toLocaleString('de-DE')} 🪙**`, 16776960);
                 alert("Vermögen der Dorfkasse erfolgreich aktualisiert!");
             } catch (err) {
                 console.error("Fehler beim Ändern der Dorfkasse:", err);
@@ -1103,7 +1122,7 @@
 
             try {
                 await db.collection("users").doc(docId).update({ balance: newBalance });
-                await sendDiscordWebhook("Kontostand geändert", `Bürger **${username}** hat neuen Kontostand: **${newBalance.toLocaleString('de-DE')} €**`, 16776960);
+                await sendDiscordWebhook("Kontostand geändert", `Bürger **${username}** hat neuen Kontostand: **${newBalance.toLocaleString('de-DE')} 🪙**`, 16776960);
                 alert("Kontostand aktualisiert!");
                 loadAdminData();
             } catch (err) {
@@ -1176,9 +1195,9 @@
 
                 await batch.commit();
 
-                await sendDiscordWebhook("💰 Gehälter ausgezahlt", `Gesamtauszahlung: **${totalPayout.toLocaleString('de-DE')} €**\nNeue Dorfkasse: **${newTreasury.toLocaleString('de-DE')} €**`, 3066993);
+                await sendDiscordWebhook("💰 Gehälter ausgezahlt", `Gesamtauszahlung: **${totalPayout.toLocaleString('de-DE')} 🪙**\nNeue Dorfkasse: **${newTreasury.toLocaleString('de-DE')} 🪙**`, 3066993);
 
-                alert(`Gehälter wurden ausgezahlt!\n\n- Gesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} €\n- Monatliches Dorfeinkommen: +1.620 €\n- Neue Dorfkasse: ${newTreasury.toLocaleString('de-DE')} €`);
+                alert(`Gehälter wurden ausgezahlt!\n\n- Gesamtauszahlung: ${totalPayout.toLocaleString('de-DE')} 🪙\n- Monatliches Dorfeinkommen: +1.620 🪙\n- Neue Dorfkasse: ${newTreasury.toLocaleString('de-DE')} 🪙`);
                 
                 loadAdminData();
             } catch (err)  {
@@ -1299,20 +1318,22 @@
             const nameInput = document.getElementById('itemNameInput');
             const qtyInput = document.getElementById('itemQtyInput');
 
-            const name = nameInput.value.trim();
+            const rawName = nameInput.value.trim();
             const qty = parseInt(qtyInput.value) || 1;
 
-            if (!name) return;
+            if (!rawName) return;
 
-            const docId = name.toLowerCase().replace(/\s+/g, '_');
-            const itemRef = db.collection("inventory").doc(docId);
+            // Name normalisieren, damit Tippfehler (Apel/Apfel) zusammengefasst werden
+            const normalizedId = normalizeItemName(rawName);
+            const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1); // Schöner Name fürs UI
+            const itemRef = db.collection("inventory").doc(normalizedId);
 
             try {
                 const itemSnap = await itemRef.get();
                 let newAmount = qty;
 
                 let savedImageUrl = null;
-                const iconSnap = await db.collection("item_icons").doc(docId).get();
+                const iconSnap = await db.collection("item_icons").doc(normalizedId).get();
                 if (iconSnap.exists) {
                     savedImageUrl = iconSnap.data().imageUrl;
                 }
@@ -1322,11 +1343,11 @@
                     savedImageUrl = itemSnap.data().imageUrl || savedImageUrl;
                 }
 
-                const itemData = { name: name, amount: newAmount };
+                const itemData = { name: formattedName, amount: newAmount };
                 if (savedImageUrl) itemData.imageUrl = savedImageUrl;
 
                 await itemRef.set(itemData);
-                await sendDiscordWebhook("Lager: Gut eingelagert", `**${name}** wurde um **+${qty}** erhöht.\nNeuer Bestand: **${newAmount}**`);
+                await sendDiscordWebhook("Lager: Gut eingelagert", `**${formattedName}** wurde um **+${qty}** erhöht.\nNeuer Bestand: **${newAmount}**`);
 
                 nameInput.value = '';
                 qtyInput.value = '1';
@@ -1343,7 +1364,6 @@
 
             try {
                 if (newAmount < 0) {
-                    // Wenn der Wert unter 0 fällt (also -1), wird das Item gelöscht
                     await itemRef.delete();
                     delete inventoryData[docId];
                     renderInventory();
@@ -1390,7 +1410,6 @@
             try {
                 const snapshot = await db.collection("inventory").get();
                 const batch = db.batch();
-                snapshot.option = true; // placeholder
                 snapshot.forEach((doc) => {
                     batch.delete(doc.ref);
                 });
@@ -1407,3 +1426,8 @@
     </script>
 </body>
 </html>
+
+            
+
+            
+
