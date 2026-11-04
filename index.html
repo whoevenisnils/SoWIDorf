@@ -457,23 +457,6 @@
             gap: 1rem;
             justify-content: center;
         }
-
-        /* MAP GRID */
-        .map-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .building-card {
-            background-color: var(--dc-bg-primary);
-            border: 1px solid var(--dc-border);
-            border-radius: 10px;
-            padding: 1.2rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
     </style>
 </head>
 <body>
@@ -683,44 +666,26 @@
             </section>
         </div>
 
-        <!-- SEITE 6: DORF-MAP (OFFIZIELLER DORFPLAN MIT HAUS-ZUTEILUNG NUR FÜR WOHNGEBÄUDE) -->
+        <!-- SEITE 6: DORF-MAP (MIT ECHTEM DORFPLAN-BILD, OHNE ZUTEILUNG) -->
         <div id="mapPage" class="page">
             <section class="card">
-                <h2>🗺️ Marignac - Interaktive Dorf-Map & Gebäude</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Offizieller Dorfplan sowie Zuweisung der Wohngebäude an die Bürger[cite: 1].</p>
+                <h2>🗺️ Marignac - Offizieller Dorfplan</h2>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Offizielle Übersicht und Karte des Dorfes Marignac[cite: 2].</p>
                 
-                <!-- Visueller Dorfplan Container -->
-                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">
-                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 1rem; font-size: 1.1rem; text-align: center;">📍 Offizieller Dorfplan: Marignac & Umgebung[cite: 1]</div>
+                <!-- Visueller Dorfplan Container mit Bild -->
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.5rem; border-radius: 10px; text-align: center;">
+                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 1rem; font-size: 1.1rem;">📍 Dorfplan: Marignac & Umgebung[cite: 2]</div>
                     
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                        <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border);">
-                            <div style="color: var(--dc-success); font-weight: bold; margin-bottom: 0.3rem;">🌾 Landwirtschaft & Produktion</div>
-                            <ul style="padding-left: 1.2rem; color: var(--dc-text-normal); font-size: 0.9rem;">
-                                <li>Acker- und Weideland: 50 ha[cite: 1]</li>
-                                <li>Stall: 25 m²[cite: 1]</li>
-                                <li>Werkstatt: 20 m²[cite: 1]</li>
-                            </ul>
-                        </div>
-                        <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border);">
-                            <div style="color: var(--dc-gold); font-weight: bold; margin-bottom: 0.3rem;">🏛️ Öffentliche Gebäude</div>
-                            <ul style="padding-left: 1.2rem; color: var(--dc-text-normal); font-size: 0.9rem;">
-                                <li>Kirche (katholisch): 1 Raum, Altar, Orgel, Bänke, 25 m²[cite: 1]</li>
-                                <li>Schul- & Gemeindehaus: Mit Zelle (28+2 m²), 15 Tische, 30 Stühle[cite: 1]</li>
-                                <li>Dorfplatz mit Brunnen & Bach[cite: 1]</li>
-                            </ul>
-                        </div>
-                        <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border);">
-                            <div style="color: var(--dc-brand); font-weight: bold; margin-bottom: 0.3rem;">🛣️ Infrastruktur</div>
-                            <ul style="padding-left: 1.2rem; color: var(--dc-text-normal); font-size: 0.9rem;">
-                                <li>Montréjeau: 25 km (6 km Eselspfad, dann Landstraße)[cite: 1]</li>
-                            </ul>
-                        </div>
+                    <div id="mapImageContainer" style="margin-bottom: 1.5rem;">
+                        <img id="villageMapImg" src="" alt="Dorfplan Marignac" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--dc-border); display: none;">
+                        <p id="noMapImageText" style="color: var(--dc-text-muted); font-size: 0.9rem;">Noch kein Dorfplan-Bild hochgeladen.</p>
                     </div>
 
-                    <!-- Nur Wohngebäude haben die Zuteilungs-Funktion -->
-                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 1rem; font-size: 1.05rem;">🏠 Wohngebäude & Zuweisung</div>
-                    <div id="mapBuildingsGrid" class="map-grid"></div>
+                    <!-- Admin Upload für das Dorfplan-Bild -->
+                    <div id="adminMapUploadContainer" class="admin-hidden hidden" style="padding-top: 1rem; border-top: 1px solid var(--dc-border); max-width: 500px; margin: 0 auto;">
+                        <label style="font-size: 0.8rem; color: var(--dc-text-muted); display: block; margin-bottom: 0.5rem;">Dorfplan-Bild hochladen / ändern (Admin):</label>
+                        <input type="file" id="mapImageFileInput" accept="image/*" onchange="uploadMapImage(event)" style="background: var(--dc-bg-secondary); padding: 0.4rem; border-radius: 6px; color: var(--dc-text-header); width: 100%;">
+                    </div>
                 </div>
             </section>
         </div>
@@ -920,16 +885,6 @@
 
         const salaries = { untere: 630, mittlere: 900, obere: 1800 };
         const availableJobs = ["Kein Beruf", "Landwirtschaft", "Köche", "Handwerker", "Händler", "Logistiker", "Bürgermeister"];
-
-        // Nur Wohngebäude erhalten die Zuteilungs-Karten
-        const villageBuildings = [
-            { id: "haus_eins", name: "Haus Eins", details: "2 Zi. à 24 m²[cite: 1]" },
-            { id: "haus_zwei", name: "Haus Zwei", details: "2 Zi. à 14 m²[cite: 1]" },
-            { id: "haus_drei", name: "Haus Drei", details: "3 Zi. à 14 m²[cite: 1]" },
-            { id: "haus_vier", name: "Haus Vier", details: "3 Zi. à 14 m², 4 Zi. à 8 m²[cite: 1]" },
-            { id: "haus_fuenf", name: "Haus Fünf", details: "4 Zi. à 8 m²[cite: 1]" },
-            { id: "haus_sechs", name: "Haus Sechs", details: "Mit Plumpsklo[cite: 1]" }
-        ];
 
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
@@ -1178,66 +1133,40 @@
             }
         }
 
-        // --- MAP & WOHNGEBÄUDE-ZUTEILUNG ---
+        // --- MAP (NUR BILDANZEIGE) ---
         async function loadMapData() {
             try {
-                const usersSnap = await db.collection("users").get();
-                let citizens = [];
-                usersSnap.forEach(doc => citizens.push(doc.data().username));
-
-                const mapSnap = await db.collection("village_map").get();
-                const assignments = {};
-                mapSnap.forEach(doc => { assignments[doc.id] = doc.data().resident || ""; });
-
-                const grid = document.getElementById('mapBuildingsGrid');
-                grid.innerHTML = '';
-
-                villageBuildings.forEach(b => {
-                    const currentResident = assignments[b.id] || "Unbewohnt";
-                    const card = document.createElement('div');
-                    card.className = 'building-card';
-
-                    let residentHtml = `<span style="color: var(--dc-success); font-weight: bold;">Bewohner: ${currentResident}</span>`;
-                    
-                    if (isUserAdmin) {
-                        let options = '<option value="">-- Niemand --</option>';
-                        citizens.forEach(c => {
-                            options += `<option value="${c}" ${assignments[b.id] === c ? 'selected' : ''}>${c}</option>`;
-                        });
-                        residentHtml = `
-                            <div style="margin-top: 0.5rem;">
-                                <label style="font-size: 0.75rem; color: var(--dc-text-muted);">Bewohner zuweisen:</label>
-                                <select id="resident_${b.id}" onchange="assignResident('${b.id}')" style="width: 100%; padding: 0.4rem; background: var(--dc-bg-secondary); border: 1px solid var(--dc-border); color: var(--dc-text-header); border-radius: 6px; margin-top: 0.3rem;">
-                                    ${options}
-                                </select>
-                            </div>
-                        `;
-                    }
-
-                    card.innerHTML = `
-                        <div>
-                            <h3 style="color: var(--dc-text-header); font-size: 1.1rem; margin-bottom: 0.3rem;">🏠 ${b.name}</h3>
-                            <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">${b.details}</p>
-                        </div>
-                        <div>${residentHtml}</div>
-                    `;
-                    grid.appendChild(card);
-                });
+                const mapImgDoc = await db.collection("village_map").doc("map_image").get();
+                const mapImgEl = document.getElementById('villageMapImg');
+                const noMapText = document.getElementById('noMapImageText');
+                if (mapImgDoc.exists && mapImgDoc.data().imageUrl) {
+                    mapImgEl.src = mapImgDoc.data().imageUrl;
+                    mapImgEl.style.display = 'inline-block';
+                    noMapText.style.display = 'none';
+                } else {
+                    mapImgEl.style.display = 'none';
+                    noMapText.style.display = 'block';
+                }
             } catch (err) {
                 console.error("Map laden Fehler:", err);
             }
         }
 
-        window.assignResident = async function(buildingId) {
-            const select = document.getElementById(`resident_${buildingId}`);
-            const resident = select.value;
-            try {
-                await db.collection("village_map").doc(buildingId).set({ resident: resident });
-                await sendDiscordWebhook("Haus zugewiesen", `Gebäude **${buildingId}** wurde **${resident || 'niemandem'}** zugewiesen.`);
-                showModal("Erfolg", "Zuweisung gespeichert!");
-            } catch (err) {
-                showModal("Fehler", err.message);
-            }
+        window.uploadMapImage = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                const base64Str = evt.target.result;
+                try {
+                    await db.collection("village_map").doc("map_image").set({ imageUrl: base64Str });
+                    showModal("Erfolg", "Dorfplan-Bild erfolgreich gespeichert!");
+                    loadMapData();
+                } catch (err) {
+                    showModal("Fehler", err.message);
+                }
+            };
+            reader.readAsDataURL(file);
         };
 
         // Bank & Info Lader
@@ -1628,6 +1557,7 @@
             if (icon) meatData.imageUrl = icon;
             await meatRef.set(meatData);
 
+      
             showModal("Geschlachtet", `+${meatCount}x ${name}fleisch erhalten!`);
             loadStallData();
         };
