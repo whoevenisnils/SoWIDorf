@@ -666,15 +666,15 @@
             </section>
         </div>
 
-        <!-- SEITE 6: DORF-MAP (MIT ECHTEM DORFPLAN-BILD, OHNE ZUTEILUNG) -->
+        <!-- SEITE 6: DORF-MAP (MIT BILD-UPLOAD FÜR ADMINS) -->
         <div id="mapPage" class="page">
             <section class="card">
                 <h2>🗺️ Marignac - Offizieller Dorfplan</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Offizielle Übersicht und Karte des Dorfes Marignac[cite: 2].</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Offizielle Übersicht und Karte des Dorfes Marignac.</p>
                 
                 <!-- Visueller Dorfplan Container mit Bild -->
                 <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.5rem; border-radius: 10px; text-align: center;">
-                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 1rem; font-size: 1.1rem;">📍 Dorfplan: Marignac & Umgebung[cite: 2]</div>
+                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 1rem; font-size: 1.1rem;">📍 Dorfplan: Marignac & Umgebung</div>
                     
                     <div id="mapImageContainer" style="margin-bottom: 1.5rem;">
                         <img id="villageMapImg" src="" alt="Dorfplan Marignac" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--dc-border); display: none;">
@@ -1133,7 +1133,7 @@
             }
         }
 
-        // --- MAP (NUR BILDANZEIGE) ---
+        // --- MAP (NUR BILDANZEIGE & UPLOAD) ---
         async function loadMapData() {
             try {
                 const mapImgDoc = await db.collection("village_map").doc("map_image").get();
@@ -1557,7 +1557,6 @@
             if (icon) meatData.imageUrl = icon;
             await meatRef.set(meatData);
 
-      
             showModal("Geschlachtet", `+${meatCount}x ${name}fleisch erhalten!`);
             loadStallData();
         };
