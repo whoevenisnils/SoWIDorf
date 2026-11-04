@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dorf-Website</title>
+    <title>Dorf-Website - Marignac</title>
     
     <!-- Firebase SDK Compat via CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -483,9 +483,7 @@
         <div class="custom-modal">
             <h3 id="modalTitle">Hinweis</h3>
             <p id="modalMessage">Nachrichtentext...</p>
-            <div id="modalButtons" class="custom-modal-buttons">
-                <!-- Dynamisch generierte Buttons -->
-            </div>
+            <div id="modalButtons" class="custom-modal-buttons"></div>
         </div>
     </div>
 
@@ -637,9 +635,7 @@
                 </form>
 
                 <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Alle Protokolle</h3>
-                <div id="protocolsListContainer" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <!-- Dynamisch geladen -->
-                </div>
+                <div id="protocolsListContainer" style="display: flex; flex-direction: column; gap: 1rem;"></div>
             </section>
 
             <section class="card">
@@ -687,34 +683,45 @@
             </section>
         </div>
 
-        <!-- SEITE 6: DORF-MAP (MIT INTEGRIERTEM DORFPLAN & HAUSEINTEILUNG) -->
+        <!-- SEITE 6: DORF-MAP (OFFIZIELLER DORFPLAN MIT HAUS-ZUTEILUNG NUR FÜR WOHNGEBÄUDE) -->
         <div id="mapPage" class="page">
             <section class="card">
                 <h2>🗺️ Marignac - Interaktive Dorf-Map & Gebäude</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Offizieller Dorfplan sowie Zuweisung der Gebäude an die Bürger[cite: 1].</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Offizieller Dorfplan sowie Zuweisung der Wohngebäude an die Bürger[cite: 1].</p>
                 
-                <!-- Integrierte Dorfplan-Grafik / Karte -->
-                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1rem; border-radius: 10px; margin-bottom: 2rem; text-align: center;">
-                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 0.8rem; font-size: 1.05rem;">📍 Offizieller Dorfplan: Marignac & Umgebung</div>
-                    <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border); display: inline-block; width: 100%; max-width: 800px; text-align: left;">
-                        <ul style="list-style-type: none; padding-left: 0; color: var(--dc-text-normal); font-size: 0.9rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.5rem;">
-                            <li>🌾 <strong>Acker- und Weideland:</strong> 50 ha[cite: 1]</li>
-                            <li>🐄 <strong>Stall:</strong> 25 m²[cite: 1]</li>
-                            <li>⛪ <strong>Kirche (katholisch):</strong> 1 Raum, Altar, Orgel, Bänke, 25 m²[cite: 1]</li>
-                            <li>🏫 <strong>Schul- und Gemeindehaus:</strong> Mit Gefängniszelle (28+2 m²), 15 Tische, 30 Stühle[cite: 1]</li>
-                            <li>🛠️ <strong>Werkstatt:</strong> 20 m²[cite: 1]</li>
-                            <li>🏠 <strong>Haus Eins:</strong> 2 Zi. à 24 m²[cite: 1]</li>
-                            <li>🏠 <strong>Haus Zwei:</strong> 2 Zi. à 14 m²[cite: 1]</li>
-                            <li>🏠 <strong>Haus Drei:</strong> 3 Zi. à 14 m²[cite: 1]</li>
-                            <li>🏠 <strong>Haus Vier:</strong> 3 Zi. à 14 m², 4 Zi. à 8 m²[cite: 1]</li>
-                            <li>🏠 <strong>Haus Fünf:</strong> 4 Zi. à 8 m²[cite: 1]</li>
-                            <li>🏠 <strong>Haus Sechs:</strong> Mit Plumpsklo[cite: 1]</li>
-                            <li>🛣️ <strong>Anbindung:</strong> Montréjeau 25 km (6 km Eselspfad, dann Landstraße)[cite: 1]</li>
-                        </ul>
+                <!-- Visueller Dorfplan Container -->
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 1rem; font-size: 1.1rem; text-align: center;">📍 Offizieller Dorfplan: Marignac & Umgebung[cite: 1]</div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border);">
+                            <div style="color: var(--dc-success); font-weight: bold; margin-bottom: 0.3rem;">🌾 Landwirtschaft & Produktion</div>
+                            <ul style="padding-left: 1.2rem; color: var(--dc-text-normal); font-size: 0.9rem;">
+                                <li>Acker- und Weideland: 50 ha[cite: 1]</li>
+                                <li>Stall: 25 m²[cite: 1]</li>
+                                <li>Werkstatt: 20 m²[cite: 1]</li>
+                            </ul>
+                        </div>
+                        <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border);">
+                            <div style="color: var(--dc-gold); font-weight: bold; margin-bottom: 0.3rem;">🏛️ Öffentliche Gebäude</div>
+                            <ul style="padding-left: 1.2rem; color: var(--dc-text-normal); font-size: 0.9rem;">
+                                <li>Kirche (katholisch): 1 Raum, Altar, Orgel, Bänke, 25 m²[cite: 1]</li>
+                                <li>Schul- & Gemeindehaus: Mit Zelle (28+2 m²), 15 Tische, 30 Stühle[cite: 1]</li>
+                                <li>Dorfplatz mit Brunnen & Bach[cite: 1]</li>
+                            </ul>
+                        </div>
+                        <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border);">
+                            <div style="color: var(--dc-brand); font-weight: bold; margin-bottom: 0.3rem;">🛣️ Infrastruktur</div>
+                            <ul style="padding-left: 1.2rem; color: var(--dc-text-normal); font-size: 0.9rem;">
+                                <li>Montréjeau: 25 km (6 km Eselspfad, dann Landstraße)[cite: 1]</li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
 
-                <div id="mapBuildingsGrid" class="map-grid"></div>
+                    <!-- Nur Wohngebäude haben die Zuteilungs-Funktion -->
+                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 1rem; font-size: 1.05rem;">🏠 Wohngebäude & Zuweisung</div>
+                    <div id="mapBuildingsGrid" class="map-grid"></div>
+                </div>
             </section>
         </div>
 
@@ -914,18 +921,14 @@
         const salaries = { untere: 630, mittlere: 900, obere: 1800 };
         const availableJobs = ["Kein Beruf", "Landwirtschaft", "Köche", "Handwerker", "Händler", "Logistiker", "Bürgermeister"];
 
-        // Vordefinierte Gebäude nach dem offiziellen Dorfplan M2 (Marignac)
+        // Nur Wohngebäude erhalten die Zuteilungs-Karten
         const villageBuildings = [
             { id: "haus_eins", name: "Haus Eins", details: "2 Zi. à 24 m²[cite: 1]" },
             { id: "haus_zwei", name: "Haus Zwei", details: "2 Zi. à 14 m²[cite: 1]" },
             { id: "haus_drei", name: "Haus Drei", details: "3 Zi. à 14 m²[cite: 1]" },
             { id: "haus_vier", name: "Haus Vier", details: "3 Zi. à 14 m², 4 Zi. à 8 m²[cite: 1]" },
             { id: "haus_fuenf", name: "Haus Fünf", details: "4 Zi. à 8 m²[cite: 1]" },
-            { id: "haus_sechs", name: "Haus Sechs", details: "Mit Plumpsklo[cite: 1]" },
-            { id: "schul_gemeindehaus", name: "Schul- und Gemeindehaus", details: "1 Raum, 28+2 m² (Zelle), 15 Tische, 30 Stühle[cite: 1]" },
-            { id: "kirche", name: "Kirche (katholisch)", details: "1 Raum, Altar, Orgel, Bänke, 25 m²[cite: 1]" },
-            { id: "werkstatt", name: "Werkstatt", details: "20 m²[cite: 1]" },
-            { id: "acker_weideland", name: "Acker- und Weideland", details: "50 ha[cite: 1]" }
+            { id: "haus_sechs", name: "Haus Sechs", details: "Mit Plumpsklo[cite: 1]" }
         ];
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1175,7 +1178,7 @@
             }
         }
 
-        // --- MAP & HAUSEINTEILUNG ---
+        // --- MAP & WOHNGEBÄUDE-ZUTEILUNG ---
         async function loadMapData() {
             try {
                 const usersSnap = await db.collection("users").get();
@@ -1237,7 +1240,7 @@
             }
         };
 
-        // Standard Bank & Info Lader
+        // Bank & Info Lader
         async function loadBankData() {
             try {
                 const treasurySnap = await db.collection("economy").doc("treasury").get();
