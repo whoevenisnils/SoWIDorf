@@ -598,7 +598,7 @@
             <!-- SITZUNGSPROTOKOLLE BEREICH -->
             <section class="card">
                 <h2>📝 Sitzungsprotokolle & Versammlungen</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Erstelle und verwalte hier offizielle Protokolle mit Text und angehängten Dateien/Bildern.</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Erstelle und verwalte hier offizielle Protokolle mit Text und mehreren angehängten Bildern oder Dateien.</p>
                 
                 <form onsubmit="handleCreateProtocol(event)" style="background-color: var(--dc-bg-primary); padding: 1.2rem; border-radius: 10px; border: 1px solid var(--dc-border); margin-bottom: 2rem;">
                     <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--dc-text-header);">Neues Protokoll verfassen</h3>
@@ -611,8 +611,8 @@
                         <textarea id="protoContent" rows="5" required placeholder="Besprochene Themen, Beschlüsse..."></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Bild oder Datei anhängen (optional)</label>
-                        <input type="file" id="protoFileInput" accept="image/*,.pdf,.txt,.doc,.docx" style="padding: 0.4rem; background: var(--dc-bg-secondary);">
+                        <label>Bilder oder Dateien anhängen (mehrere auswählbar)</label>
+                        <input type="file" id="protoFileInput" accept="image/*,.pdf,.txt,.doc,.docx" multiple style="padding: 0.4rem; background: var(--dc-bg-secondary);">
                     </div>
                     <button type="submit" class="btn btn-success">Protokoll veröffentlichen</button>
                 </form>
@@ -666,7 +666,7 @@
             </section>
         </div>
 
-        <!-- SEITE 6: DORF-MAP (MIT BILD-UPLOAD FÜR ADMINS) -->
+        <!-- SEITE 6: DORF-MAP (MIT ADMIN-UPLOAD IM 3-FACH-KLICK BEREICH) -->
         <div id="mapPage" class="page">
             <section class="card">
                 <h2>🗺️ Marignac - Offizieller Dorfplan</h2>
@@ -681,7 +681,7 @@
                         <p id="noMapImageText" style="color: var(--dc-text-muted); font-size: 0.9rem;">Noch kein Dorfplan-Bild hochgeladen.</p>
                     </div>
 
-                    <!-- Admin Upload für das Dorfplan-Bild -->
+                    <!-- Admin Upload für das Dorfplan-Bild (hinter dem 3-Fach-Klick Admin-Schutz) -->
                     <div id="adminMapUploadContainer" class="admin-hidden hidden" style="padding-top: 1rem; border-top: 1px solid var(--dc-border); max-width: 500px; margin: 0 auto;">
                         <label style="font-size: 0.8rem; color: var(--dc-text-muted); display: block; margin-bottom: 0.5rem;">Dorfplan-Bild hochladen / ändern (Admin):</label>
                         <input type="file" id="mapImageFileInput" accept="image/*" onchange="uploadMapImage(event)" style="background: var(--dc-bg-secondary); padding: 0.4rem; border-radius: 6px; color: var(--dc-text-header); width: 100%;">
@@ -932,7 +932,7 @@
                     if (isCurrentlyHidden) el.classList.remove('hidden');
                     else el.classList.add('hidden');
                 });
-                showModal("Admin-Zusatzbereiche", isCurrentlyHidden ? "🔓 Stall, Feld freigeschaltet!" : "🔒 Wieder versteckt.");
+                showModal("Admin-Zusatzbereiche", isCurrentlyHidden ? "🔓 Admin-Bereiche freigeschaltet!" : "🔒 Wieder versteckt.");
             }
             adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 1000);
         };
@@ -1056,36 +1056,43 @@
             else handleRoute();
         }
 
-        // --- SITZUNGSPROTOKOLLE ---
+        // --- SITZUNGSPROTOKOLLE (MEHRERE DATEIEN MÖGLICH) ---
         window.handleCreateProtocol = async function(e) {
             e.preventDefault();
             const title = document.getElementById('protoTitle').value.trim();
             const content = document.getElementById('protoContent').value.trim();
             const fileInput = document.getElementById('protoFileInput');
             
+            const attachments = [];
             if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                reader.onload = async function(evt) {
-                    await saveProtocolToDb(title, content, evt.target.result, file.name);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                await saveProtocolToDb(title, content, null, null);
+                const files = Array.from(fileInput.files);
+                for (const file of files) {
+                    await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            attachments.push({
+                                fileUrl: evt.target.result,
+                                fileName: file.name
+                            });
+                            resolve();
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
             }
+            await saveProtocolToDb(title, content, attachments);
         };
 
-        async function saveProtocolToDb(title, content, fileUrl, fileName) {
+        async function saveProtocolToDb(title, content, attachments) {
             try {
                 await db.collection("protocols").add({
                     title: title,
                     content: content,
                     author: currentUser,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    fileUrl: fileUrl,
-                    fileName: fileName
+                    attachments: attachments
                 });
-                await sendDiscordWebhook("Neues Sitzungsprotokoll", `Titel: **${title}**\nErstellt von: **${currentUser}**`);
+                await sendDiscordWebhook("Neues Sitzungsprotokoll", `Titel: **${title}**\nErstellt von: **${currentUser}**\nAnhänge: ${attachments.length}`);
                 document.getElementById('protoTitle').value = '';
                 document.getElementById('protoContent').value = '';
                 document.getElementById('protoFileInput').value = '';
@@ -1113,9 +1120,16 @@
                     item.style.padding = '1rem';
                     item.style.borderRadius = '8px';
 
-                    let fileHtml = '';
-                    if (data.fileUrl) {
-                        fileHtml = `<div style="margin-top: 0.8rem;"><a href="${data.fileUrl}" target="_blank" download="${data.fileName || 'datei'}" class="btn btn-sm btn-gold">📥 Datei herunterladen: ${data.fileName || 'Anhang'}</a></div>`;
+                    let filesHtml = '';
+                    if (data.attachments && data.attachments.length > 0) {
+                        let links = '';
+                        data.attachments.forEach(att => {
+                            links += `<a href="${att.fileUrl}" target="_blank" download="${att.fileName || 'datei'}" class="btn btn-sm btn-gold" style="display: inline-block; margin: 0.2rem;">📥 ${att.fileName || 'Anhang'}</a>`;
+                        });
+                        filesHtml = `<div style="margin-top: 0.8rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">${links}</div>`;
+                    } else if (data.fileUrl) {
+                        // Abwärtskompatibilität für ältere Einzeldatei-Protokolle
+                        filesHtml = `<div style="margin-top: 0.8rem;"><a href="${data.fileUrl}" target="_blank" download="${data.fileName || 'datei'}" class="btn btn-sm btn-gold">📥 ${data.fileName || 'Anhang'}</a></div>`;
                     }
 
                     item.innerHTML = `
@@ -1124,7 +1138,7 @@
                             <span style="font-size: 0.75rem; color: var(--dc-text-muted);">Von: ${data.author || 'Unbekannt'}</span>
                         </div>
                         <p style="color: var(--dc-text-normal); font-size: 0.9rem; white-space: pre-wrap; margin-bottom: 0.5rem;">${data.content}</p>
-                        ${fileHtml}
+                        ${filesHtml}
                     `;
                     container.appendChild(item);
                 });
