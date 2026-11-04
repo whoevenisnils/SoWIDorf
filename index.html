@@ -687,31 +687,29 @@
             </section>
         </div>
 
-        <!-- SEITE 6: DORF-MAP MIT INTEGRIERTEM PLAN & HAUSEINTEILUNG -->
+        <!-- SEITE 6: DORF-MAP (MIT INTEGRIERTEM DORFPLAN & HAUSEINTEILUNG) -->
         <div id="mapPage" class="page">
             <section class="card">
                 <h2>🗺️ Marignac - Interaktive Dorf-Map & Gebäude</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Offizielle Übersicht nach dem Dorfplan. Admins können Bürger direkt in Häuser einteilen.</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Offizieller Dorfplan sowie Zuweisung der Gebäude an die Bürger[cite: 1].</p>
                 
-                <!-- Integrierter Dorfplan aus der PDF/Quelle -->
-                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1rem; border-radius: 10px; text-align: center; margin-bottom: 2rem;">
-                    <h3 style="font-size: 1rem; color: var(--dc-gold); margin-bottom: 0.8rem;">📄 Offizieller Dorfplan (Übersicht)</h3>
-                    <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; display: inline-block; max-width: 100%; text-align: left; font-size: 0.9rem; line-height: 1.5;">
-                        <p><strong>Region:</strong> Marignac</p>
-                        <p><strong>Infrastruktur & Maße:</strong></p>
-                        <ul style="margin-left: 1.5rem; color: var(--dc-text-normal);">
-                            <li><strong>Acker- und Weideland:</strong> 50 ha</li>
-                            <li><strong>Stall:</strong> 25 m²</li>
-                            <li><strong>Haus Eins:</strong> 2 Zi. à 24 m²</li>
-                            <li><strong>Haus Zwei:</strong> 2 Zi. à 14 m²</li>
-                            <li><strong>Haus Drei:</strong> 3 Zi. à 14 m²</li>
-                            <li><strong>Haus Vier:</strong> 3 Zi. à 14 m², 4 Zi. à 8 m²</li>
-                            <li><strong>Haus Fünf:</strong> 4 Zi. à 8 m²</li>
-                            <li><strong>Haus Sechs:</strong> Mit Plumpsklo</li>
-                            <li><strong>Kirche (katholisch):</strong> 1 Raum, Altar, Orgel, Bänke, 25 m²</li>
-                            <li><strong>Schul- und Gemeindehaus mit Gefängniszelle:</strong> 1 Raum, 28+2 m² (Zelle), 15 Tische und 30 Stühle</li>
-                            <li><strong>Werkstatt:</strong> 20 m²</li>
-                            <li><strong>Anbindung:</strong> Montréjeau 25 km (6 km Eselspfad, dann Landstraße)</li>
+                <!-- Integrierte Dorfplan-Grafik / Karte -->
+                <div style="background-color: var(--dc-bg-primary); border: 1px solid var(--dc-border); padding: 1rem; border-radius: 10px; margin-bottom: 2rem; text-align: center;">
+                    <div style="font-weight: bold; color: var(--dc-text-header); margin-bottom: 0.8rem; font-size: 1.05rem;">📍 Offizieller Dorfplan: Marignac & Umgebung</div>
+                    <div style="background: var(--dc-bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--dc-border); display: inline-block; width: 100%; max-width: 800px; text-align: left;">
+                        <ul style="list-style-type: none; padding-left: 0; color: var(--dc-text-normal); font-size: 0.9rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.5rem;">
+                            <li>🌾 <strong>Acker- und Weideland:</strong> 50 ha[cite: 1]</li>
+                            <li>🐄 <strong>Stall:</strong> 25 m²[cite: 1]</li>
+                            <li>⛪ <strong>Kirche (katholisch):</strong> 1 Raum, Altar, Orgel, Bänke, 25 m²[cite: 1]</li>
+                            <li>🏫 <strong>Schul- und Gemeindehaus:</strong> Mit Gefängniszelle (28+2 m²), 15 Tische, 30 Stühle[cite: 1]</li>
+                            <li>🛠️ <strong>Werkstatt:</strong> 20 m²[cite: 1]</li>
+                            <li>🏠 <strong>Haus Eins:</strong> 2 Zi. à 24 m²[cite: 1]</li>
+                            <li>🏠 <strong>Haus Zwei:</strong> 2 Zi. à 14 m²[cite: 1]</li>
+                            <li>🏠 <strong>Haus Drei:</strong> 3 Zi. à 14 m²[cite: 1]</li>
+                            <li>🏠 <strong>Haus Vier:</strong> 3 Zi. à 14 m², 4 Zi. à 8 m²[cite: 1]</li>
+                            <li>🏠 <strong>Haus Fünf:</strong> 4 Zi. à 8 m²[cite: 1]</li>
+                            <li>🏠 <strong>Haus Sechs:</strong> Mit Plumpsklo[cite: 1]</li>
+                            <li>🛣️ <strong>Anbindung:</strong> Montréjeau 25 km (6 km Eselspfad, dann Landstraße)[cite: 1]</li>
                         </ul>
                     </div>
                 </div>
@@ -916,19 +914,18 @@
         const salaries = { untere: 630, mittlere: 900, obere: 1800 };
         const availableJobs = ["Kein Beruf", "Landwirtschaft", "Köche", "Handwerker", "Händler", "Logistiker", "Bürgermeister"];
 
-        // Gebäude exakt nach dem übermittelten Dorfplan (Marignac)
+        // Vordefinierte Gebäude nach dem offiziellen Dorfplan M2 (Marignac)
         const villageBuildings = [
-            { id: "haus_eins", name: "Haus Eins", details: "2 Zi. à 24 m²" },
-            { id: "haus_zwei", name: "Haus Zwei", details: "2 Zi. à 14 m²" },
-            { id: "haus_drei", name: "Haus Drei", details: "3 Zi. à 14 m²" },
-            { id: "haus_vier", name: "Haus Vier", details: "3 Zi. à 14 m², 4 Zi. à 8 m²" },
-            { id: "haus_fuenf", name: "Haus Fünf", details: "4 Zi. à 8 m²" },
-            { id: "haus_sechs", name: "Haus Sechs", details: "Mit Plumpsklo" },
-            { id: "schul_gemeindehaus", name: "Schul- und Gemeindehaus", details: "1 Raum, 28+2 m² (Gefängniszelle), 15 Tische, 30 Stühle" },
-            { id: "kirche", name: "Kirche (katholisch)", details: "1 Raum, Altar, Orgel, Bänke, 25 m²" },
-            { id: "werkstatt", name: "Werkstatt", details: "20 m²" },
-            { id: "acker_weideland", name: "Acker- und Weideland", details: "50 ha" },
-            { id: "stall", name: "Stall", details: "25 m²" }
+            { id: "haus_eins", name: "Haus Eins", details: "2 Zi. à 24 m²[cite: 1]" },
+            { id: "haus_zwei", name: "Haus Zwei", details: "2 Zi. à 14 m²[cite: 1]" },
+            { id: "haus_drei", name: "Haus Drei", details: "3 Zi. à 14 m²[cite: 1]" },
+            { id: "haus_vier", name: "Haus Vier", details: "3 Zi. à 14 m², 4 Zi. à 8 m²[cite: 1]" },
+            { id: "haus_fuenf", name: "Haus Fünf", details: "4 Zi. à 8 m²[cite: 1]" },
+            { id: "haus_sechs", name: "Haus Sechs", details: "Mit Plumpsklo[cite: 1]" },
+            { id: "schul_gemeindehaus", name: "Schul- und Gemeindehaus", details: "1 Raum, 28+2 m² (Zelle), 15 Tische, 30 Stühle[cite: 1]" },
+            { id: "kirche", name: "Kirche (katholisch)", details: "1 Raum, Altar, Orgel, Bänke, 25 m²[cite: 1]" },
+            { id: "werkstatt", name: "Werkstatt", details: "20 m²[cite: 1]" },
+            { id: "acker_weideland", name: "Acker- und Weideland", details: "50 ha[cite: 1]" }
         ];
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1168,7 +1165,8 @@
                             <strong style="color: var(--dc-text-header); font-size: 1.1rem;">${data.title}</strong>
                             <span style="font-size: 0.75rem; color: var(--dc-text-muted);">Von: ${data.author || 'Unbekannt'}</span>
                         </div>
-                        <p style="color: var(--dc-text-normal); font-size: 0.9rem; white-space: pre-wrap; margin-bottom: 0.5rem;">${data.content}</p>${fileHtml}
+                        <p style="color: var(--dc-text-normal); font-size: 0.9rem; white-space: pre-wrap; margin-bottom: 0.5rem;">${data.content}</p>
+                        ${fileHtml}
                     `;
                     container.appendChild(item);
                 });
@@ -1216,4 +1214,420 @@
                     card.innerHTML = `
                         <div>
                             <h3 style="color: var(--dc-text-header); font-size: 1.1rem; margin-bottom: 0.3rem;">🏠 ${b.name}</h3>
-                            <p style="color: var(--dc-text-muted);
+                            <p style="color: var(--dc-text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">${b.details}</p>
+                        </div>
+                        <div>${residentHtml}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Map laden Fehler:", err);
+            }
+        }
+
+        window.assignResident = async function(buildingId) {
+            const select = document.getElementById(`resident_${buildingId}`);
+            const resident = select.value;
+            try {
+                await db.collection("village_map").doc(buildingId).set({ resident: resident });
+                await sendDiscordWebhook("Haus zugewiesen", `Gebäude **${buildingId}** wurde **${resident || 'niemandem'}** zugewiesen.`);
+                showModal("Erfolg", "Zuweisung gespeichert!");
+            } catch (err) {
+                showModal("Fehler", err.message);
+            }
+        };
+
+        // Standard Bank & Info Lader
+        async function loadBankData() {
+            try {
+                const treasurySnap = await db.collection("economy").doc("treasury").get();
+                let villageBalance = treasurySnap.exists ? treasurySnap.data().totalAmount : 10000;
+                document.getElementById('villageTreasury').innerText = villageBalance.toLocaleString('de-DE') + ' 🪙';
+
+                const userSnap = await db.collection("users").doc(currentUser.toLowerCase()).get();
+                if (userSnap.exists) {
+                    const d = userSnap.data();
+                    document.getElementById('myBalance').innerText = (d.balance || 0).toLocaleString('de-DE') + ' 🪙';
+                    document.getElementById('myClassInfo').innerText = `Beruf: ${d.job || 'Kein Beruf'} | Schicht: ${d.socialClass}`;
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadInfoData() {
+            try {
+                const rulesSnap = await db.collection("economy").doc("rules").get();
+                if (rulesSnap.exists) document.getElementById('rulesTextarea').value = rulesSnap.data().content || '';
+                const usersSnap = await db.collection("users").get();
+                const tbody = document.getElementById('infoCitizensTableBody');
+                tbody.innerHTML = '';
+                usersSnap.forEach(doc => {
+                    const data = doc.data();
+                    tbody.innerHTML += `<tr><td><strong>${data.username}</strong></td><td>${data.job || 'Kein Beruf'}</td><td>${data.socialClass}</td></tr>`;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        window.saveRules = async function() {
+            const content = document.getElementById('rulesTextarea').value;
+            try {
+                await db.collection("economy").doc("rules").set({ content: content });
+                const status = document.getElementById('rulesSavedStatus');
+                status.classList.remove('hidden');
+                setTimeout(() => status.classList.add('hidden'), 2000);
+            } catch (err) { showModal("Fehler", err.message); }
+        };
+
+        async function loadAdminData() {
+            try {
+                const treasurySnap = await db.collection("economy").doc("treasury").get();
+                document.getElementById('adminTreasuryInput').value = treasurySnap.exists ? treasurySnap.data().totalAmount : 10000;
+                const settingsSnap = await db.collection("economy").doc("settings").get();
+                if (settingsSnap.exists) {
+                    const data = settingsSnap.data();
+                    document.getElementById('adminMeatMin').value = data.meatMin ?? 2;
+                    document.getElementById('adminMeatMax').value = data.meatMax ?? 10;
+                    document.getElementById('adminFieldSlotsInput').value = data.fieldSlots ?? 6;
+                    renderAdminSeedTable(data.seedMapping || "kartoffelsaat:Kartoffeln:5, karottensaat:Karotten:3");
+                }
+                const invSnap = await db.collection("inventory").get();
+                const iconSelect = document.getElementById('adminIconItemSelect');
+                iconSelect.innerHTML = '<option value="">-- Item auswählen --</option>';
+                invSnap.forEach(doc => {
+                    iconSelect.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+                });
+                const snapshot = await db.collection("users").get();
+                const tbody = document.getElementById('adminCitizensTableBody');
+                tbody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data(); const docId = doc.id; const isNils = docId.toLowerCase() === 'nils';
+                    let jobOptions = ''; availableJobs.forEach(j => { jobOptions += `<option value="${j}" ${data.job === j ? 'selected' : ''}>${j}</option>`; });
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${data.username}</strong></td>
+                            <td><select id="job_${docId}" onchange="updateUserJob('${docId}', '${data.username}')">${jobOptions}</select></td>
+                            <td><select id="class_${docId}" onchange="updateUserClass('${docId}', '${data.username}')"><option value="untere" ${data.socialClass==='untere'?'selected':''}>Untere</option><option value="mittlere" ${data.socialClass==='mittlere'?'selected':''}>Mittlere</option><option value="obere" ${data.socialClass==='obere'?'selected':''}>Obere</option></select></td>
+                            <td><input type="number" id="bal_${docId}" value="${data.balance || 0}" style="width: 80px;"><button class="btn btn-sm" onclick="updateUserBalance('${docId}', '${data.username}')">Ändern</button></td>
+                            <td>${isNils ? 'Immer Admin' : `<button class="btn btn-sm ${data.isAdmin?'btn-danger':'btn-success'}" onclick="toggleAdmin('${docId}', '${!data.isAdmin}')">${data.isAdmin?'Entziehen':'Geben'}</button>`}</td>
+                            <td>${isNils ? '-' : `<button class="btn btn-danger btn-sm" onclick="confirmDeleteUser('${docId}', '${data.username}')">Löschen</button>`}</td>
+                        </tr>`;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function renderAdminSeedTable(seedMappingStr) {
+            const tbody = document.getElementById('adminSeedTableBody');
+            tbody.innerHTML = '';
+            seedMappingStr.split(',').forEach(pair => {
+                const parts = pair.split(':');
+                if (parts.length >= 2) addSeedTableRow(parts[0].trim(), parts[1].trim(), parts[2] ? parseInt(parts[2]) : 1);
+            });
+        }
+
+        window.addSeedTableRow = function(seed = '', product = '', amount = 1) {
+            const tbody = document.getElementById('adminSeedTableBody');
+            tbody.innerHTML += `
+                <tr>
+                    <td><input type="text" class="seed-input" value="${seed}"></td>
+                    <td><input type="text" class="product-input" value="${product}"></td>
+                    <td><input type="number" class="amount-input" value="${amount}" min="1" style="width: 80px;"></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Löschen</button></td>
+                </tr>`;
+        };
+
+        window.saveFieldSettings = async function() {
+            const rows = document.querySelectorAll('#adminSeedTableBody tr');
+            let mappingParts = [];
+            rows.forEach(r => {
+                const s = r.querySelector('.seed-input').value.trim();
+                const p = r.querySelector('.product-input').value.trim();
+                const a = r.querySelector('.amount-input').value.trim() || '1';
+                if (s && p) mappingParts.push(`${s}:${p}:${a}`);
+            });
+            await db.collection("economy").doc("settings").set({ seedMapping: mappingParts.join(', '), fieldSlots: parseInt(document.getElementById('adminFieldSlotsInput').value) || 6 }, { merge: true });
+            showModal("Erfolg", "Feld-Einstellungen gespeichert!");
+        };
+
+        window.saveMeatSettings = async function() {
+            await db.collection("economy").doc("settings").set({ meatMin: parseInt(document.getElementById('adminMeatMin').value) || 2, meatMax: parseInt(document.getElementById('adminMeatMax').value) || 10 }, { merge: true });
+            showModal("Erfolg", "Fleisch-Werte gespeichert!");
+        };
+
+        window.uploadAndSaveItemIcon = function() {
+            const itemId = document.getElementById('adminIconItemSelect').value;
+            const file = document.getElementById('adminImageIconInput').files[0];
+            if (!itemId || !file) { showModal("Hinweis", "Bitte Item und Datei wählen!"); return; }
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                await db.collection("inventory").doc(itemId).update({ imageUrl: e.target.result });
+                showModal("Erfolg", "Icon hochgeladen!");
+                loadInventory();
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.confirmDeleteUser = function(docId, username) {
+            showModal("Löschen", `Account von ${username} löschen?`, true, async () => {
+                await db.collection("users").doc(docId).delete();
+                loadAdminData();
+            });
+        };
+
+        window.updateVillageTreasury = async function() {
+            const val = Number(document.getElementById('adminTreasuryInput').value);
+            await db.collection("economy").doc("treasury").set({ totalAmount: val });
+            showModal("Erfolg", "Dorfkasse aktualisiert!");
+        };
+
+        window.updateUserBalance = async function(docId, username) {
+            const val = Number(document.getElementById(`bal_${docId}`).value);
+            await db.collection("users").doc(docId).update({ balance: val });
+            showModal("Erfolg", "Guthaben aktualisiert!");
+        };
+
+        window.updateUserClass = async function(docId) {
+            await db.collection("users").doc(docId).update({ socialClass: document.getElementById(`class_${docId}`).value });
+        };
+
+        window.updateUserJob = async function(docId) {
+            await db.collection("users").doc(docId).update({ job: document.getElementById(`job_${docId}`).value });
+        };
+
+        window.toggleAdmin = async function(docId, makeAdmin) {
+            await db.collection("users").doc(docId).update({ isAdmin: makeAdmin });
+            loadAdminData();
+        };
+
+        window.distributeSalaries = async function() {
+            const usersSnap = await db.collection("users").get();
+            const treasurySnap = await db.collection("economy").doc("treasury").get();
+            let treasury = treasurySnap.exists ? treasurySnap.data().totalAmount : 10000;
+            let total = 0; const batch = db.batch();
+            usersSnap.forEach(doc => {
+                const s = salaries[doc.data().socialClass] || 900;
+                total += s;
+                batch.update(doc.ref, { balance: (doc.data().balance || 0) + s });
+            });
+            treasury = treasury + 1620 - total;
+            batch.set(db.collection("economy").doc("treasury"), { totalAmount: treasury });
+            await batch.commit();
+            showModal("Gehälter", `Ausgezahlt: ${total} 🪙. Neue Dorfkasse: ${treasury} 🪙.`);
+            loadAdminData();
+        };
+
+        // --- LAGER & FELDER ---
+        async function loadInventory() {
+            const snap = await db.collection("inventory").get();
+            inventoryData = {};
+            snap.forEach(doc => { if (doc.data().amount >= 0) inventoryData[doc.id] = doc.data(); });
+            renderInventory();
+        }
+
+        function renderInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            const datalist = document.getElementById('existingItemsDatalist');
+            grid.innerHTML = ''; datalist.innerHTML = '';
+            Object.keys(inventoryData).forEach(id => {
+                const item = inventoryData[id];
+                datalist.innerHTML += `<option value="${item.name}">`;
+                grid.innerHTML += `
+                    <div class="item-bubble">
+                        <div class="item-header">
+                            ${item.imageUrl ? `<img src="${item.imageUrl}" class="item-icon">` : ''}
+                            <div class="item-name">${item.name}</div>
+                        </div>
+                        <div class="item-count">${item.amount}</div>
+                        <div class="controls">
+                            <div class="controls-row">
+                                <button class="ctrl-btn" onclick="updateAmount('${id}', -1, '${item.name}')">-</button>
+                                <button class="ctrl-btn" onclick="updateAmount('${id}', 1, '${item.name}')">+</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        window.handleAddOrUpdateItem = async function(e) {
+            e.preventDefault();
+            const raw = document.getElementById('itemNameInput').value.trim();
+            const qty = parseInt(document.getElementById('itemQtyInput').value) || 1;
+            const id = normalizeItemName(raw);
+            const ref = db.collection("inventory").doc(id);
+            const snap = await ref.get();
+            let amt = snap.exists ? (snap.data().amount || 0) + qty : qty;
+            let icon = snap.exists ? snap.data().imageUrl : null;
+            if (!icon) {
+                const iconSnap = await db.collection("item_icons").doc(id).get();
+                if (iconSnap.exists) icon = iconSnap.data().imageUrl;
+            }
+            const data = { name: raw.charAt(0).toUpperCase() + raw.slice(1), amount: amt };
+            if (icon) data.imageUrl = icon;
+            await ref.set(data);
+            document.getElementById('itemNameInput').value = '';
+            loadInventory();
+        };
+
+        window.updateAmount = async function(id, change) {
+            const ref = db.collection("inventory").doc(id);
+            const current = inventoryData[id]?.amount || 0;
+            const next = current + change;
+            if (next < 0) await ref.delete();
+            else await ref.update({ amount: next });
+            loadInventory();
+        };
+
+        window.resetEntireInventory = function() {
+            showModal("Lager leeren", "Gesamtes Lager leeren?", true, async () => {
+                const snap = await db.collection("inventory").get();
+                const batch = db.batch();
+                snap.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+                loadInventory();
+            });
+        };
+
+        async function loadFieldData() {
+            let mappingStr = "kartoffelsaat:Kartoffeln:5, karottensaat:Karotten:3";
+            let slotsCount = 6;
+            const settingsSnap = await db.collection("economy").doc("settings").get();
+            if (settingsSnap.exists) {
+                mappingStr = settingsSnap.data().seedMapping || mappingStr;
+                slotsCount = settingsSnap.data().fieldSlots ?? 6;
+            }
+            const seedMap = {};
+            mappingStr.split(',').forEach(p => {
+                const parts = p.split(':');
+                if (parts.length >= 2) seedMap[parts[0].trim().toLowerCase()] = { product: parts[1].trim(), amount: parseInt(parts[2]) || 1 };
+            });
+
+            const invSnap = await db.collection("inventory").get();
+            inventoryData = {};
+            invSnap.forEach(d => { if (seedMap[d.id.toLowerCase()] || Object.keys(seedMap).some(s => d.data().name.toLowerCase().includes(s))) inventoryData[d.id] = d.data(); });
+
+            const fieldSnap = await db.collection("fields").get();
+            fieldData = {};
+            fieldSnap.forEach(d => fieldData[d.id] = d.data());
+
+            const grid = document.getElementById('fieldSlotsGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= slotsCount; i++) {
+                const slotId = `slot_${i}`;
+                const info = fieldData[slotId] || { planted: null };
+                let content = `<span style="color: var(--dc-text-muted);">Leer</span>`;
+                let btn = '';
+                if (info.planted) {
+                    content = `Angebaut: <span style="color: var(--dc-success);">${info.planted}</span><br><small>Ertrag: ${info.yieldAmount}x ${info.yieldProduct}</small>`;
+                    btn = `<button class="btn btn-gold btn-sm" onclick="harvestField('${slotId}', '${info.yieldProduct}', ${info.yieldAmount})">Ernten</button>`;
+                } else {
+                    let opts = '<option value="">-- Saatgut --</option>';
+                    Object.keys(inventoryData).forEach(invId => {
+                        const item = inventoryData[invId];
+                        const m = seedMap[invId.toLowerCase()] || { product: 'Produkt', amount: 1 };
+                        opts += `<option value="${invId}" data-name="${item.name}" data-prod="${m.product}" data-amt="${m.amount}">${item.name} (${item.amount}) ➔ +${m.amount} ${m.product}</option>`;
+                    });
+                    content = `<select id="sel_${slotId}" style="width: 100%; padding: 0.4rem; background: var(--dc-bg-primary); color: white; border-radius: 6px;">${opts}</select>`;
+                    btn = `<button class="btn btn-success btn-sm" onclick="plantSeed('${slotId}', '${slotId}')">Pflanzen</button>`;
+                }
+                grid.innerHTML += `<div class="item-bubble"><div class="item-name">Slot #${i}</div><div style="margin: 0.8rem 0;">${content}</div>${btn}</div>`;
+            }
+        }
+
+        window.plantSeed = async function(slotId) {
+            const sel = document.getElementById(`sel_${slotId}`);
+            const opt = sel.options[sel.selectedIndex];
+            const seedId = sel.value;
+            if (!seedId) return;
+
+            const seedRef = db.collection("inventory").doc(seedId);
+            const snap = await seedRef.get();
+            if (!snap.exists || snap.data().amount <= 0) { showModal("Fehler", "Nicht genug Saatgut!"); return; }
+
+            const nextAmt = snap.data().amount - 1;
+            if (nextAmt <= 0) await seedRef.delete();
+            else await seedRef.update({ amount: nextAmt });
+
+            await db.collection("fields").doc(slotId).set({
+                planted: opt.getAttribute('data-name'),
+                yieldProduct: opt.getAttribute('data-prod'),
+                yieldAmount: parseInt(opt.getAttribute('data-amt')) || 1
+            });
+            loadFieldData();
+        };
+
+        window.harvestField = async function(slotId, prod, amt) {
+            const yieldId = normalizeItemName(prod);
+            const ref = db.collection("inventory").doc(yieldId);
+            const snap = await ref.get();
+            let total = snap.exists ? (snap.data().amount || 0) + amt : amt;
+            let icon = snap.exists ? snap.data().imageUrl : null;
+            if (!icon) {
+                const iconSnap = await db.collection("item_icons").doc(yieldId).get();
+                if (iconSnap.exists) icon = iconSnap.data().imageUrl;
+            }
+            const data = { name: prod.charAt(0).toUpperCase() + prod.slice(1), amount: total };
+            if (icon) data.imageUrl = icon;
+            await ref.set(data);
+            await db.collection("fields").doc(slotId).delete();
+            showModal("Erfolg", `+${amt}x ${prod} geerntet!`);
+            loadFieldData();
+        };
+
+        async function loadStallData() {
+            const snap = await db.collection("stall").get();
+            stallData = {};
+            snap.forEach(d => { if (d.data().amount >= 0) stallData[d.id] = d.data(); });
+            const grid = document.getElementById('stallGrid');
+            grid.innerHTML = '';
+            Object.keys(stallData).forEach(id => {
+                const animal = stallData[id];
+                grid.innerHTML += `
+                    <div class="item-bubble">
+                        <div class="item-name">🐄 ${animal.name}</div>
+                        <div class="item-count">${animal.amount}</div>
+                        <button class="btn btn-danger btn-sm" onclick="slaughterAnimal('${id}', '${animal.name}')">Schlachten</button>
+                    </div>`;
+            });
+        }
+
+        window.handleAddAnimal = async function(e) {
+            e.preventDefault();
+            const raw = document.getElementById('animalNameInput').value.trim();
+            const qty = parseInt(document.getElementById('animalQtyInput').value) || 1;
+            const id = normalizeItemName(raw);
+            const ref = db.collection("stall").doc(id);
+            const snap = await ref.get();
+            let amt = snap.exists ? (snap.data().amount || 0) + qty : qty;
+            await ref.set({ name: raw.charAt(0).toUpperCase() + raw.slice(1), amount: amt });
+            document.getElementById('animalNameInput').value = '';
+            loadStallData();
+        };
+
+        window.slaughterAnimal = async function(id, name) {
+            const ref = db.collection("stall").doc(id);
+            const cur = stallData[id].amount;
+            if (cur <= 0) { await ref.delete(); loadStallData(); return; }
+            await ref.update({ amount: cur - 1 });
+
+            let min = 2, max = 10;
+            const settingsSnap = await db.collection("economy").doc("settings").get();
+            if (settingsSnap.exists) { min = settingsSnap.data().meatMin ?? 2; max = settingsSnap.data().meatMax ?? 10; }
+            const meatCount = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            const meatId = normalizeItemName(name + "fleisch");
+            const meatRef = db.collection("inventory").doc(meatId);
+            const meatSnap = await meatRef.get();
+            let totalMeat = meatSnap.exists ? (meatSnap.data().amount || 0) + meatCount : meatCount;
+            let icon = meatSnap.exists ? meatSnap.data().imageUrl : null;
+            if (!icon) {
+                const iconSnap = await db.collection("item_icons").doc(meatId).get();
+                if (iconSnap.exists) icon = iconSnap.data().imageUrl;
+            }
+            const meatData = { name: name + "fleisch", amount: totalMeat };
+            if (icon) meatData.imageUrl = icon;
+            await meatRef.set(meatData);
+
+            showModal("Geschlachtet", `+${meatCount}x ${name}fleisch erhalten!`);
+            loadStallData();
+        };
+    </script>
+</body>
+</html>
