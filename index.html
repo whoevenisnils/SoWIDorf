@@ -595,10 +595,10 @@
                 <span id="rulesSavedStatus" style="color: var(--dc-success); font-size: 0.85rem; margin-left: 1rem;" class="hidden">Gespeichert!</span>
             </section>
 
-            <!-- SITZUNGSPROTOKOLLE BEREICH (MIT MEHRFACH-BILD UPLOAD & KOMPRIMIERUNG) -->
+            <!-- SITZUNGSPROTOKOLLE BEREICH (BILDER WERDEN DIREKT ANGEZEIGT) -->
             <section class="card">
                 <h2>📝 Sitzungsprotokolle & Versammlungen</h2>
-                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Erstelle und verwalte hier offizielle Protokolle mit Text und mehreren angehängten Bildern oder Dateien.</p>
+                <p style="color: var(--dc-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Erstelle und verwalte hier offizielle Protokolle mit Text und angehängten Bildern (direkte Ansicht) oder Dateien.</p>
                 
                 <form onsubmit="handleCreateProtocol(event)" style="background-color: var(--dc-bg-primary); padding: 1.2rem; border-radius: 10px; border: 1px solid var(--dc-border); margin-bottom: 2rem;">
                     <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--dc-text-header);">Neues Protokoll verfassen</h3>
@@ -1056,7 +1056,7 @@
             else handleRoute();
         }
 
-        // --- SITZUNGSPROTOKOLLE (MIT BILD-KOMPRIMIERUNG GEGEN 1-MB-LIMIT) ---
+        // --- SITZUNGSPROTOKOLLE (MIT BILD-KOMPRIMIERUNG & DIREKT-ANZEIGE) ---
         window.handleCreateProtocol = async function(e) {
             e.preventDefault();
             const title = document.getElementById('protoTitle').value.trim();
@@ -1151,13 +1151,21 @@
 
                     let filesHtml = '';
                     if (data.attachments && data.attachments.length > 0) {
-                        let links = '';
+                        let attsContent = '';
                         data.attachments.forEach(att => {
-                            links += `<a href="${att.fileUrl}" target="_blank" download="${att.fileName || 'datei'}" class="btn btn-sm btn-gold" style="display: inline-block; margin: 0.2rem;">📥 ${att.fileName || 'Anhang'}</a>`;
+                            if (att.fileUrl && (att.fileUrl.startsWith('data:image/') || att.fileUrl.match(/\.(jpeg|jpg|gif|png)$/i))) {
+                                attsContent += `<div style="margin-top: 0.8rem;"><img src="${att.fileUrl}" alt="${att.fileName || 'Bild'}" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid var(--dc-border); display: block;"></div>`;
+                            } else {
+                                attsContent += `<div style="margin-top: 0.5rem;"><a href="${att.fileUrl}" target="_blank" download="${att.fileName || 'datei'}" class="btn btn-sm btn-gold">📥 ${att.fileName || 'Anhang'}</a></div>`;
+                            }
                         });
-                        filesHtml = `<div style="margin-top: 0.8rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">${links}</div>`;
+                        filesHtml = `<div style="margin-top: 0.8rem;">${attsContent}</div>`;
                     } else if (data.fileUrl) {
-                        filesHtml = `<div style="margin-top: 0.8rem;"><a href="${data.fileUrl}" target="_blank" download="${data.fileName || 'datei'}" class="btn btn-sm btn-gold">📥 ${data.fileName || 'Anhang'}</a></div>`;
+                        if (data.fileUrl.startsWith('data:image/')) {
+                            filesHtml = `<div style="margin-top: 0.8rem;"><img src="${data.fileUrl}" alt="${data.fileName || 'Bild'}" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid var(--dc-border); display: block;"></div>`;
+                        } else {
+                            filesHtml = `<div style="margin-top: 0.8rem;"><a href="${data.fileUrl}" target="_blank" download="${data.fileName || 'datei'}" class="btn btn-sm btn-gold">📥 ${data.fileName || 'Anhang'}</a></div>`;
+                        }
                     }
 
                     item.innerHTML = `
@@ -1198,7 +1206,6 @@
             const file = e.target.files[0];
             if (!file) return;
             
-            // Auch hier direkt komprimieren für die Karte
             compressImageFile(file, 1200, 0.8).then(async (base64Str) => {
                 try {
                     await db.collection("village_map").doc("map_image").set({ imageUrl: base64Str });
