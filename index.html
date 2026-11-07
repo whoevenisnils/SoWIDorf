@@ -1242,7 +1242,6 @@
                 tbody.innerHTML = '';
                 usersSnap.forEach(doc => {
                     const data = doc.data();
-                    // Nils2 wird in der öffentlichen Bürger-Liste übersprungen
                     if (data.username && data.username.toLowerCase() === 'nils2') return;
                     tbody.innerHTML += `<tr><td><strong>${data.username}</strong></td><td>${data.job || 'Kein Beruf'}</td><td>${data.socialClass}</td></tr>`;
                 });
@@ -1312,11 +1311,17 @@
                     <td><input type="text" class="seed-input" value="${seed}"></td>
                     <td><input type="text" class="product-input" value="${product}"></td>
                     <td><input type="number" class="amount-input" value="${amount}" min="1" style="width: 80px;"></td>
-                    <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Löschen</button></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="removeSeedRow(this)">Löschen</button></td>
                 </tr>`;
         };
 
-        window.saveFieldSettings = async function() {
+        window.removeSeedRow = async function(btn) {
+            btn.closest('tr').remove();
+            await saveFieldSettings(true); // Direkt in Firestore speichern beim Löschen
+            showModal("Erfolg", "Saatgut-Regel entfernt und gespeichert!");
+        };
+
+        window.saveFieldSettings = async function(silent = false) {
             const rows = document.querySelectorAll('#adminSeedTableBody tr');
             let mappingParts = [];
             rows.forEach(r => {
@@ -1325,8 +1330,14 @@
                 const a = r.querySelector('.amount-input').value.trim() || '1';
                 if (s && p) mappingParts.push(`${s}:${p}:${a}`);
             });
-            await db.collection("economy").doc("settings").set({ seedMapping: mappingParts.join(', '), fieldSlots: parseInt(document.getElementById('adminFieldSlotsInput').value) || 6 }, { merge: true });
-            showModal("Erfolg", "Feld-Einstellungen gespeichert!");
+            await db.collection("economy").doc("settings").set({ 
+                seedMapping: mappingParts.join(', '), 
+                fieldSlots: parseInt(document.getElementById('adminFieldSlotsInput').value) || 6 
+            }, { merge: true });
+            
+            if (!silent) {
+                showModal("Erfolg", "Feld-Einstellungen gespeichert!");
+            }
         };
 
         window.saveMeatSettings = async function() {
